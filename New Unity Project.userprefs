@@ -1,0 +1,16 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\PlayerControl.js">
+    <Files>
+      <File FileName="Assets\NewBehaviourScript.cs" Line="11" Column="26" />
+      <File FileName="Assets\PlayerControl.js" Line="26" Column="3" />
+      <File FileName="Assets\SceneManager.cs" Line="33" Column="4" />
+      <File FileName="Assets\Block.cs" Line="22" Column="9" />
+      <File FileName="Assets\PlayerControl.cs" Line="14" Column="4" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
