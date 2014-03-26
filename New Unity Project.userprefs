@@ -1,16 +1,19 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\PlayerControl.js">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\NewBehaviourScript.cs">
     <Files>
-      <File FileName="Assets\NewBehaviourScript.cs" Line="11" Column="26" />
-      <File FileName="Assets\PlayerControl.js" Line="26" Column="3" />
-      <File FileName="Assets\SceneManager.cs" Line="33" Column="4" />
-      <File FileName="Assets\Block.cs" Line="22" Column="9" />
-      <File FileName="Assets\PlayerControl.cs" Line="14" Column="4" />
+      <File FileName="Assets\SceneManager.cs" Line="11" Column="1" />
+      <File FileName="Assets\Block.cs" Line="1" Column="1" />
+      <File FileName="Assets\Example.cs" Line="15" Column="42" />
+      <File FileName="Assets\NewBehaviourScript.cs" Line="15" Column="39" />
+      <File FileName="Assets\CollisionManager.cs" Line="20" Column="4" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\PlayerControl.js" line="18" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Trigger2.js" line="3" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

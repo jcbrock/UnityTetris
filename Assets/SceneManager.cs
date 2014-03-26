@@ -30,12 +30,24 @@ namespace AssemblyCSharp
 						UnityEngine.Debug.Log (currentObject.transform.position);
 						currentObj.Tick ();
 
+						bool collided = false;
+						if (collided) {
+								//add to grid
+								//check for row deletions			
+								//make new currentObj
+						} else {
+								currentObject.transform.Translate (0, (float)-1, 0);
+						}
 
-						currentObject.transform.Translate (0, (float)-1, 0);
+						
+						//check collision
+						//if collided
+
 						//currentObject.rigidbody2D.transform.position.y -= .1;
 						//currentObject.position.y -= (float).1;
 						//rigidbody2D.transform.position.y -= .1;
 				}
+
 		}
 }
 

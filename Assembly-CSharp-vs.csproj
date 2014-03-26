@@ -47,6 +47,8 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Block.cs" />
+     <Compile Include="Assets\CollisionManager.cs" />
+     <Compile Include="Assets\Example.cs" />
      <Compile Include="Assets\NewBehaviourScript.cs" />
      <Compile Include="Assets\PlayerControl.cs" />
      <Compile Include="Assets\SceneManager.cs" />
