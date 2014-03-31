@@ -8,47 +8,79 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using System;
+using System.Collections;
 namespace AssemblyCSharp
 {
 		public class SceneManager// : UnityEngine.MonoBehaviour
 		{
-				Block currentObj;
+
+				public Block currentBlock;
+				public Block tempBlock;
+				public System.Collections.ArrayList listOfBlocks = new System.Collections.ArrayList ();
 				int[,] grid;
 				//UnityEngine.Transform currentObject = UnityEngine.GameObject.Find("tempblock");
-				public UnityEngine.GameObject currentObject;// = UnityEngine.GameObject.Find ("tempblock");
+				//public UnityEngine.GameObject currentObject;// = UnityEngine.GameObject.Find ("tempblock");
 				
 				public SceneManager ()
 				{
 						grid = new int[10, 25];					
-						currentObj = new Block ();
-
+						currentBlock = new Block ();
+						
+						listOfBlocks.Add (new Block (UnityEngine.GameObject.Find ("tempblock")));
+						listOfBlocks.Add (new Block (UnityEngine.GameObject.Find ("GameObject")));
+						listOfBlocks.Add (new Block (UnityEngine.GameObject.Find ("TestCD2")));
 				}
 			
 				public void Tick ()
-				{
-						//UnityEngine.Debug.Log ("Tick!");
-						UnityEngine.Debug.Log (currentObject.transform.position);
-						currentObj.Tick ();
+				{						
+						//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
+						currentBlock.Tick ();
 
 						bool collided = false;
-						if (collided) {
-								//add to grid
-								//check for row deletions			
-								//make new currentObj
+						if (AnyCollisions ()) {
+								listOfBlocks.Add (currentBlock); //might need to copy it explictly
+								currentBlock = new Block (SpawnRandomizedTetrisBlock ());
 						} else {
-								//currentObject.transform.Translate (0, (float)-1, 0);
-							
-								currentObject.transform.Translate (
-									new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);
+								currentBlock.gameObject.transform.Translate (
+									new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);								
+								currentBlock.y -= 1;
 						}
+				}
 
+				bool AnyCollisions ()
+				{
+						foreach (Block block in listOfBlocks) { //for each object in the scene that is colliable
+								if (CollisionManager.isColliding (currentBlock, block))
+										return true;
+						}
+						return false;
+				}
+
+				UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
+				{
+						int foo = UnityEngine.Random.Range (0, 10); //10 = number of possible shapes
+						float xStart = UnityEngine.Random.Range (0.0F, 10.0F); //10 = length of tetris board (x)
+						int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
+						UnityEngine.Debug.Log ("Random values! " + foo + " " + xStart + " " + rotation);
+						UnityEngine.GameObject currentObject = UnityEngine.GameObject.Find ("CompositeGO");							
+						UnityEngine.Vector3 temp = new UnityEngine.Vector3 (xStart, 0, 0);
+
+						return SpawnNewBlock (currentObject, temp, rotation);
+				}
+		
+				UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, UnityEngine.Vector3 position, int rotation)
+				{
+
+						UnityEngine.GameObject newObj = (UnityEngine.GameObject)UnityEngine.MonoBehaviour.Instantiate (objectShape,
+			                                             position,
+			                                                                     UnityEngine.Quaternion.identity);
+						//newObj.AddComponent ("CollisionManager");
 						
-						//check collision
-						//if collided
-
-						//currentObject.rigidbody2D.transform.position.y -= .1;
-						//currentObject.position.y -= (float).1;
-						//rigidbody2D.transform.position.y -= .1;
+						UnityEngine.Vector3 currentRotation;		
+						currentRotation = newObj.transform.eulerAngles;
+						currentRotation.z = (currentRotation.z + (90 * rotation * -1));
+						newObj.transform.eulerAngles = currentRotation;
+						return newObj;
 				}
 
 		}

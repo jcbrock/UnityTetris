@@ -12,16 +12,31 @@ namespace AssemblyCSharp
 {
 		public class Block
 		{
+				public float x;
+				public float y;
+				public float width;
+				public float height;
+				public UnityEngine.GameObject gameObject;
+
 				public Block ()
 				{
 					
+				}
+				public Block (UnityEngine.GameObject gameObj)
+				{
+						gameObject = gameObj;
+						x = gameObj.transform.position.x; 
+						y = gameObj.transform.position.y;
+						width = gameObj.renderer.bounds.size.x; 
+						height = gameObj.renderer.bounds.size.y;
+
 				}
 				public void Tick () //eventually override this in the child class, once I start creating different types of blocks\
 				{
 						//I need to move down this object, assuming it is the current obj
 						//rigidbody2D.transform.position.y -= .1;
 					
-				}
+				}				
 		}
 }
 
