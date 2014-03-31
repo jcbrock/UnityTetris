@@ -12,7 +12,8 @@ namespace AssemblyCSharp
 						var txtToPrint = "Start called!"; 
 						Debug.Log (txtToPrint);
 						sceneMgr = new AssemblyCSharp.SceneManager ();
-						sceneMgr.currentObject = UnityEngine.GameObject.Find ("tempblock");
+						//sceneMgr.currentObject = UnityEngine.GameObject.Find ("tempblock");
+						sceneMgr.currentObject = UnityEngine.GameObject.Find ("CompositeGO");
 				}
 	
 				// Update is called once per frame
@@ -21,7 +22,7 @@ namespace AssemblyCSharp
 				{
 						//eh, this depends on the frame through, I will need to switch this to time #TODO
 						//UnityEngine.Debug.Log ("Current obj: " + sceneMgr.currentObject.name);
-						if (frameCounter == 60) {
+						if (frameCounter == 5) {
 								sceneMgr.Tick ();
 								frameCounter = 0;
 						} else {

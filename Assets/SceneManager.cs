@@ -36,7 +36,10 @@ namespace AssemblyCSharp
 								//check for row deletions			
 								//make new currentObj
 						} else {
-								currentObject.transform.Translate (0, (float)-1, 0);
+								//currentObject.transform.Translate (0, (float)-1, 0);
+							
+								currentObject.transform.Translate (
+									new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);
 						}
 
 						
