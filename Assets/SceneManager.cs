@@ -9,66 +9,42 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Collections;
+using System.Collections.Generic;
 namespace AssemblyCSharp
 {
 	public class SceneManager// : UnityEngine.MonoBehaviour
 	{
 		public Shape currentShape;
-		public Block currentBlock;
-		public Block tempBlock;
-		public System.Collections.ArrayList listOfBlocks = new System.Collections.ArrayList ();
-		public System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
-		int[,] grid;
-		//UnityEngine.Transform currentObject = UnityEngine.GameObject.Find("tempblock");
-		//public UnityEngine.GameObject currentObject;// = UnityEngine.GameObject.Find ("tempblock");
-				
+		private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
+		private List<UnityEngine.GameObject> listOfPossibleShapes = new List<UnityEngine.GameObject> ();
+
 		public SceneManager ()
 		{
-			grid = new int[10, 25];					
-			currentBlock = new Block ();
-						
-			listOfBlocks.Add (new Block (UnityEngine.GameObject.Find ("tempblock")));
-			listOfBlocks.Add (new Block (UnityEngine.GameObject.Find ("GameObject")));
-			listOfBlocks.Add (new Block (UnityEngine.GameObject.Find ("TestCD2")));
-
-			listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("tempblock")));
-			listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("GameObject")));
+			//grid = new int[10, 25];					
 			listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("TestCD2")));
-
-			//currentShape = new Shape (UnityEngine.GameObject.Find ("TestCD"));
+			listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape1"));
+			listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape2"));
+			listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape3"));
+			listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape4"));
 		}
 			
 		public void Tick ()
 		{			
 			//currentShape.Tick();
 			//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
-			//currentBlock.Tick ();
-
 			bool collided = false;
 			if (AnyCollisions ()) {
-				//listOfBlocks.Add (currentBlock); //might need to copy it explictly
-				//currentBlock = new Block (SpawnRandomizedTetrisBlock ());
 				listOfShapes.Add (currentShape); //might need to copy it explictly
-
-				//currentShape.GetComponent<MyScript> ().enabled = false;
-				//UnityEngine.Behaviour foop = (UnityEngine.Behaviour)(currentShape.compositeGameObject.GetComponent ("Script"));
-				//foop.enabled = false;
-				Shape thisIsDumb = currentShape;
+				currentShape.disablePlayerControls ();
 				currentShape = new Shape (SpawnRandomizedTetrisBlock ());
-				thisIsDumb.compositeGameObject.GetComponent <AssemblyCSharp.PlayerControl> ().enabled = false;
+
 			} else {
-				currentShape.compositeGameObject.transform.Translate (
-									new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);								
-				//currentShape.y -= 1;
+				currentShape.translate (0, -1, 0);
 			}
 		}
 
 		bool AnyCollisions ()
 		{
-			/*	foreach (Block block in listOfBlocks) { //for each object in the scene that is colliable
-				if (CollisionManager.isColliding (currentBlock, block))
-					return true;
-			}*/
 			foreach (Shape shape in listOfShapes) { //for each object in the scene that is colliable
 				if (CollisionManager.isColliding (currentShape, shape))
 					return true;
@@ -79,13 +55,12 @@ namespace AssemblyCSharp
 
 		UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
 		{
-			int foo = UnityEngine.Random.Range (0, 10); //10 = number of possible shapes
+			int randomShape = UnityEngine.Random.Range (0, 4); //4 = number of possible shapes
 			float xStart = UnityEngine.Random.Range (0.0F, 10.0F); //10 = length of tetris board (x)
 			int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
-			UnityEngine.Debug.Log ("Random values! " + foo + " " + xStart + " " + rotation);
 			UnityEngine.Vector3 temp = new UnityEngine.Vector3 (xStart, 0, 0);
 
-			return SpawnNewBlock (currentShape.compositeGameObject, temp, rotation); //eventually replace with random shape...
+			return SpawnNewBlock (listOfPossibleShapes [randomShape], temp, rotation); //eventually replace with random shape...
 		}
 		
 		UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, UnityEngine.Vector3 position, int rotation)
@@ -94,8 +69,7 @@ namespace AssemblyCSharp
 			UnityEngine.GameObject newObj = (UnityEngine.GameObject)UnityEngine.MonoBehaviour.Instantiate (objectShape,
 			                                             position,
 			                                                                     UnityEngine.Quaternion.identity);
-			//newObj.AddComponent ("CollisionManager");
-						
+
 			UnityEngine.Vector3 currentRotation;		
 			currentRotation = newObj.transform.eulerAngles;
 			currentRotation.z = (currentRotation.z + (90 * rotation * -1));

@@ -36,7 +36,7 @@ namespace AssemblyCSharp
 			}
 			if (Input.GetKeyDown (KeyCode.Z)) { 
 				//todo - error checking of course
-				Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
+				//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
 			}
 		}
 	}

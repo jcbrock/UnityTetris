@@ -20,6 +20,7 @@ namespace AssemblyCSharp
 
 		public float x ()
 		{
+			//((UnityEngine.BoxCollider2D)gameObject.collider).size.x;
 			return gameObject.transform.position.x;
 		}
 		public float y ()
@@ -28,11 +29,14 @@ namespace AssemblyCSharp
 		}
 		public float width ()
 		{
-			return gameObject.renderer.bounds.size.x;
+			//return gameObject.renderer.bounds.size.x;
+			return ((UnityEngine.BoxCollider)gameObject.collider).size.x;
 		}
 		public float height ()
 		{
-			return gameObject.renderer.bounds.size.y;
+			//return gameObject.renderer.bounds.size.y;
+			return ((UnityEngine.BoxCollider)gameObject.collider).size.y;
+			//((UnityEngine.BoxCollider2D)gameObject.GetComponent<UnityEngine.BoxCollider2D>).
 		}
 
 		public Block ()
