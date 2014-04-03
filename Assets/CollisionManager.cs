@@ -4,18 +4,18 @@ using System.Collections;
 public static class CollisionManager
 {
 
-		// Use this for initialization
-		//	void Start ()
-		//{
-		//		UnityEngine.Debug.Log ("Start collisionmanager!");				
-		//}
+	// Use this for initialization
+	//	void Start ()
+	//{
+	//		UnityEngine.Debug.Log ("Start collisionmanager!");				
+	//}
 	
-		// Update is called once per frame
-		//	void Update ()
-		//	{
-		//		
-		//	}
-		/*
+	// Update is called once per frame
+	//	void Update ()
+	//	{
+	//		
+	//	}
+	/*
 		public void OnCollisionEnter2DChild (Collider2D other)
 		{
 				UnityEngine.Debug.Log ("OnCollisionEnter2DChild called!");		
@@ -51,8 +51,8 @@ public static class CollisionManager
 				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentObject = SpawnRandomizedTetrisBlock ();
 		}*/
 
-		//not the right place for it..
-		/*static UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
+	//not the right place for it..
+	/*static UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
 		{
 				int foo = Random.Range (0, 10); //10 = number of possible shapes
 				float xStart = Random.Range (0.0F, 10.0F); //10 = length of tetris board (x)
@@ -73,7 +73,7 @@ public static class CollisionManager
 			
 				return SpawnNewBlock (currentObject, temp, rotation);
 		}*/
-		/*
+	/*
 		static  UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, Vector3 position, int rotation)
 		{
 		
@@ -90,9 +90,21 @@ public static class CollisionManager
 				return newObj;
 		}
 */
-		public static bool isColliding (AssemblyCSharp.Block b1, AssemblyCSharp.Block b2)
-		{
-				return (Mathf.Abs (b1.x - b2.x) * 2 < (b1.width + b2.width) &&
-						Mathf.Abs (b1.y - b2.y) * 2 < (b1.height + b2.height));
+	public static bool isColliding (AssemblyCSharp.Block b1, AssemblyCSharp.Block b2)
+	{
+		return (Mathf.Abs (b1.x () - b2.x ()) * 2 < (b1.width () + b2.width ()) &&
+			Mathf.Abs (b1.y () - b2.y ()) * 2 < (b1.height () + b2.height ()));
+	}
+
+	public static bool isColliding (AssemblyCSharp.Shape s1, AssemblyCSharp.Shape s2)
+	{
+		//todo - current brute force, check if every block collides with another block. short circuit if collision
+		foreach (AssemblyCSharp.Block b1 in s1.blocks) {
+			foreach (AssemblyCSharp.Block b2 in s2.blocks) {
+				if (isColliding (b1, b2))
+					return true;
+			}
 		}
+		return false;
+	}
 }

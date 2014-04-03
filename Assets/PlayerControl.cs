@@ -7,14 +7,39 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
-using System;
+using UnityEngine;
+using System.Collections;
 namespace AssemblyCSharp
 {
-		public class PlayerControl
+	public class PlayerControl : MonoBehaviour
+	{		
+		void Update ()
 		{
-				public PlayerControl ()
-				{
-				}
+							
+			if (Input.GetKeyDown (KeyCode.LeftArrow)) { 
+				transform.Translate (new UnityEngine.Vector3 ((float)-1, 0, 0), UnityEngine.Space.World);	
+			}
+			if (Input.GetKeyDown (KeyCode.UpArrow)) { 
+				transform.Translate (new UnityEngine.Vector3 (0, (float)1, 0), UnityEngine.Space.World);	
+			}
+			if (Input.GetKeyDown (KeyCode.RightArrow)) { 
+				transform.Translate (new UnityEngine.Vector3 ((float)1, 0, 0), UnityEngine.Space.World);	
+			}
+			if (Input.GetKeyDown (KeyCode.DownArrow)) { 
+				transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
+			}
+			if (Input.GetKeyDown (KeyCode.D)) { 
+				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (true);
+			}
+			if (Input.GetKeyDown (KeyCode.A)) { 
+				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (false);
+			}
+			if (Input.GetKeyDown (KeyCode.Z)) { 
+				//todo - error checking of course
+				Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
+			}
 		}
+	}
 }
+
 
