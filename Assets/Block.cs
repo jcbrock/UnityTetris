@@ -12,11 +12,32 @@ namespace AssemblyCSharp
 {
 		public class Block
 		{
-				public float x;
-				public float y;
-				public float width;
-				public float height;
+				//public float x;
+				//public float y;
+				//public float width;
+				//public float height;
 				public UnityEngine.GameObject gameObject;
+
+				public float x ()
+				{
+						//((UnityEngine.BoxCollider2D)gameObject.collider).size.x;
+						return gameObject.transform.position.x;
+				}
+				public float y ()
+				{
+						return gameObject.transform.position.y;
+				}
+				public float width ()
+				{
+						//return gameObject.renderer.bounds.size.x;
+						return ((UnityEngine.BoxCollider)gameObject.collider).size.x;
+				}
+				public float height ()
+				{
+						//return gameObject.renderer.bounds.size.y;
+						return ((UnityEngine.BoxCollider)gameObject.collider).size.y;
+						//((UnityEngine.BoxCollider2D)gameObject.GetComponent<UnityEngine.BoxCollider2D>).
+				}
 
 				public Block ()
 				{
@@ -25,10 +46,10 @@ namespace AssemblyCSharp
 				public Block (UnityEngine.GameObject gameObj)
 				{
 						gameObject = gameObj;
-						x = gameObj.transform.position.x; 
-						y = gameObj.transform.position.y;
-						width = gameObj.renderer.bounds.size.x; 
-						height = gameObj.renderer.bounds.size.y;
+						//x = gameObj.transform.position.x; 
+						//y = gameObj.transform.position.y;
+						//width = gameObj.renderer.bounds.size.x; 
+						//height = gameObj.renderer.bounds.size.y;
 
 				}
 				public void Tick () //eventually override this in the child class, once I start creating different types of blocks\

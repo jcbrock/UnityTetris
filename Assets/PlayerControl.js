@@ -41,4 +41,6 @@ function Update ()
 		}
 		//Debug.Log("MoveDown pressed");
 	}
+	
+	
 }
