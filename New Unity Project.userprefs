@@ -1,20 +1,20 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\SceneManager.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\CollisionManager.cs">
     <Files>
-      <File FileName="Assets\SceneManager.cs" Line="45" Column="14" />
+      <File FileName="Assets\SceneManager.cs" Line="54" Column="36" />
       <File FileName="Assets\Example.cs" Line="1" Column="1" />
       <File FileName="Assets\NewBehaviourScript.cs" Line="12" Column="41" />
-      <File FileName="Assets\CollisionManager.cs" Line="95" Column="1" />
+      <File FileName="Assets\CollisionManager.cs" Line="131" Column="11" />
       <File FileName="Assets\ChildCollision.cs" Line="28" Column="31" />
-      <File FileName="Assets\Block.cs" Line="27" Column="28" />
+      <File FileName="Assets\Block.cs" Line="64" Column="1" />
+      <File FileName="Assets\PlayerControl.cs" Line="27" Column="1" />
+      <File FileName="Assets\Shape.cs" Line="32" Column="20" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\PlayerControl.js" line="18" />
       <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Trigger2.js" line="3" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="41" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />

@@ -13,75 +13,81 @@ using System.Collections.Generic;
 
 namespace AssemblyCSharp
 {
-	public class Shape
-	{
-		public List<Block> blocks;
-		private UnityEngine.GameObject compositeGameObject;
-
-		//Hide default constructor
-		private Shape ()
+		public class Shape
 		{
-		}
+				public List<Block> blocks;
+				private UnityEngine.GameObject compositeGameObject;
 
-		public Shape (UnityEngine.GameObject compositeGameObject)
-		{
-			if (compositeGameObject == null)
-				throw new ArgumentNullException ("A shape MUST contain a game object!");
+				//Hide default constructor
+				private Shape ()
+				{
+				}
 
-			this.compositeGameObject = compositeGameObject;
-			blocks = new List<Block>{new Block(compositeGameObject)};
-			setPlayerControls (true);
-		}
+				public Shape (UnityEngine.GameObject compositeGameObject)
+				{
+						if (compositeGameObject == null)
+								throw new ArgumentNullException ("A shape MUST contain a game object!");
 
-		public void Rotate90Degrees (bool clockwise)
-		{
+						this.compositeGameObject = compositeGameObject;
+						blocks = new List<Block>{new Block(compositeGameObject)};
+						setPlayerControls (true);
+				}
 
-			UnityEngine.Debug.Log ("Trying to rotate!");
-			UnityEngine.Vector3 rotation;		
-			rotation = compositeGameObject.transform.eulerAngles;
-			rotation.z = (rotation.z + (90 * (clockwise ? 1 : -1)));
-			compositeGameObject.transform.eulerAngles = rotation;
-		}
+				public void Rotate90Degrees (bool clockwise)
+				{
 
-		//Can I get away with hiding any direct access to children?
-		//i.e. I expose move functions / delete functions on shape which take care of any iteraction with Shape?
+						UnityEngine.Debug.Log ("Trying to rotate!");
+						UnityEngine.Vector3 rotation;		
+						rotation = compositeGameObject.transform.eulerAngles;
+						rotation.z = (rotation.z + (90 * (clockwise ? 1 : -1)));
+						compositeGameObject.transform.eulerAngles = rotation;
+				}
 
-		public void translate (float x, float y, float z)
-		{
-			translateInWorldSpace (new UnityEngine.Vector3 (x, y, z));								
-		}
-		public void translate (UnityEngine.Vector3 vec)
-		{
-			translateInWorldSpace (vec);
-		}
-		private void translateInWorldSpace (UnityEngine.Vector3 vec)
-		{
-			compositeGameObject.transform.Translate (vec, UnityEngine.Space.World);
-		}
-		public void enablePlayerControls ()
-		{
-			setPlayerControls (true);
-		}
-		public void disablePlayerControls ()
-		{
-			setPlayerControls (false);
-		}
-		private void setPlayerControls (bool turnOn)
-		{
-			var foo = compositeGameObject.GetComponent ("PlayerControl");
-			if (foo != null)
-				((UnityEngine.Behaviour)foo).enabled = turnOn;
-			else
-				UnityEngine.Debug.Log ("No player control found!");
-		}
+				//Can I get away with hiding any direct access to children?
+				//i.e. I expose move functions / delete functions on shape which take care of any iteraction with Shape?
 
-		//TODO - fix this encapsulation
-		public UnityEngine.Transform GetGameObjectTransform ()
-		{
-			return compositeGameObject.transform;
+				public void translate (float x, float y, float z)
+				{
+						translateInWorldSpace (new UnityEngine.Vector3 (x, y, z));								
+				}
+				public void translate (UnityEngine.Vector3 vec)
+				{
+						translateInWorldSpace (vec);
+				}
+				private void translateInWorldSpace (UnityEngine.Vector3 vec)
+				{
+						compositeGameObject.transform.Translate (vec, UnityEngine.Space.World);
+				}
+				public void enablePlayerControls ()
+				{
+						setPlayerControls (true);
+				}
+				public void disablePlayerControls ()
+				{
+						setPlayerControls (false);
+				}
+				private void setPlayerControls (bool turnOn)
+				{
+						var foo = ((PlayerControl)compositeGameObject.GetComponent<PlayerControl> ());
+						if (foo != null)
+								foo.enabled = turnOn;
+						else
+								UnityEngine.Debug.Log ("No player control found!");
+				}
+
+				//TODO - fix this encapsulation
+				public UnityEngine.Transform GetGameObjectTransform ()
+				{
+						
+						//	var foo = compositeGameObject.GetComponent ("PlayerControl");
+						//	var foo2 = compositeGameObject.GetComponent ("script");
+						//	var foo3 = compositeGameObject.GetComponent ("Script");
+						//	var foo4 = ((PlayerControl)compositeGameObject.GetComponent<PlayerControl> ());
+					
+						return compositeGameObject.transform;
+				}
+
+
 		}
-
-
-	}
 }
 

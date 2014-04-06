@@ -11,35 +11,43 @@ using UnityEngine;
 using System.Collections;
 namespace AssemblyCSharp
 {
-	public class PlayerControl : MonoBehaviour
-	{		
-		void Update ()
-		{
-							
-			if (Input.GetKeyDown (KeyCode.LeftArrow)) { 
-				transform.Translate (new UnityEngine.Vector3 ((float)-1, 0, 0), UnityEngine.Space.World);	
-			}
-			if (Input.GetKeyDown (KeyCode.UpArrow)) { 
-				transform.Translate (new UnityEngine.Vector3 (0, (float)1, 0), UnityEngine.Space.World);	
-			}
-			if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-				transform.Translate (new UnityEngine.Vector3 ((float)1, 0, 0), UnityEngine.Space.World);	
-			}
-			if (Input.GetKeyDown (KeyCode.DownArrow)) { 
-				transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
-			}
-			if (Input.GetKeyDown (KeyCode.D)) { 
-				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (true);
-			}
-			if (Input.GetKeyDown (KeyCode.A)) { 
-				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (false);
-			}
-			if (Input.GetKeyDown (KeyCode.Z)) { 
-				//todo - error checking of course
-				//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
-			}
+		public class PlayerControl : MonoBehaviour
+		{		
+				void Update ()
+				{
+						//TODO - I need to pass in vector I'm about to move into AnyCollisions, rather than just tryint to do -1 for y...
+						//Clean up this mess too...
+						if (Input.GetKeyDown (KeyCode.LeftArrow)) { 
+								if (!CollisionManager.isCollidingWithLeftWall (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape) && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (-1, 0))									
+										transform.Translate (new UnityEngine.Vector3 ((float)-1, 0, 0), UnityEngine.Space.World);
+								else {
+										CollisionManager.isCollidingWithLeftWall (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape);
+								}
+						}
+						if (Input.GetKeyDown (KeyCode.UpArrow)) {
+								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, 1))			
+										transform.Translate (new UnityEngine.Vector3 (0, (float)1, 0), UnityEngine.Space.World);	
+						}
+						if (Input.GetKeyDown (KeyCode.RightArrow)) { 
+								if (!CollisionManager.isCollidingWithRightWall (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape) && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (1, 0))													
+										transform.Translate (new UnityEngine.Vector3 ((float)1, 0, 0), UnityEngine.Space.World);	
+						}
+						if (Input.GetKeyDown (KeyCode.DownArrow)) { 
+								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, -1))												
+										transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
+						}
+						if (Input.GetKeyDown (KeyCode.D)) { 
+								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (true);
+						}
+						if (Input.GetKeyDown (KeyCode.A)) { 
+								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (false);
+						}
+						if (Input.GetKeyDown (KeyCode.Z)) { 
+								//todo - error checking of course
+								//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
+						}
+				}
 		}
-	}
 }
 
 
