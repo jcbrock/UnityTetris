@@ -1,56 +1,8 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 
 public static class CollisionManager
 {
-
-		// Use this for initialization
-		//	void Start ()
-		//{
-		//		UnityEngine.Debug.Log ("Start collisionmanager!");				
-		//}
-	
-		// Update is called once per frame
-		//	void Update ()
-		//	{
-		//		
-		//	}
-		/*
-		public void OnCollisionEnter2DChild (Collider2D other)
-		{
-				UnityEngine.Debug.Log ("OnCollisionEnter2DChild called!");		
-		}
-		public  void OnCollisionStay2DChild (Collider2D other)
-		{
-				UnityEngine.Debug.Log ("OnCollisionStay2DChild called!");			
-		}
-		public void OnCollisionExit2DChild (Collider2D other)
-		{
-				UnityEngine.Debug.Log ("OnCollisionExit2DChild called!");		
-		}
-
-		void OnTriggerExit2D (Collider2D other)
-		{
-				Debug.Log ("Something has exited this zone.");    
-		} 
-		void OnTriggerStay2D (Collider2D other)
-		{
-				Debug.Log ("Something has entered this zone.");    
-		} 
-	
-		void OnCollisionEnter2D (Collision2D collision)
-		{
-				Debug.Log ("something has hit me");
-		} 
-	
-		void OnTriggerEnter2D (UnityEngine.Collider2D other)
-		{
-				//Destroy(other.gameObject);
-				UnityEngine.Debug.Log ("Collision! Stop object...");				
-				//spawn new object
-				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentObject = SpawnRandomizedTetrisBlock ();
-		}*/
-
 		public static bool isCollidingWithLeftWall (AssemblyCSharp.Shape s)
 		{
 				var foo = s.GetGameObjectTransform ();
@@ -94,11 +46,11 @@ public static class CollisionManager
 				return false;
 		}
 
-		public static bool isColliding (AssemblyCSharp.Block b1, AssemblyCSharp.Block b2)
-		{
-				return (Mathf.Abs (b1.x () - b2.x ()) * 2 < (b1.width () + b2.width ()) &&
-						Mathf.Abs (b1.y () - b2.y ()) * 2 < (b1.height () + b2.height ()));
-		}
+		//public static bool isColliding (AssemblyCSharp.Block b1, AssemblyCSharp.Block b2)
+		//{
+		//			return (Mathf.Abs (b1.x () - b2.x ()) * 2 < (b1.width () + b2.width ()) &&
+//						Mathf.Abs (b1.y () - b2.y ()) * 2 < (b1.height () + b2.height ()));
+		//}
 
 		public static bool isColliding (AssemblyCSharp.Shape s1, AssemblyCSharp.Shape s2, float xDelta, float yDelta)
 		{			
@@ -135,9 +87,9 @@ public static class CollisionManager
 										(Mathf.Abs (child1.position.y - 1 - bar.position.y) - yDelta) * 2 < ((child1.renderer.bounds.size.y + bar.renderer.bounds.size.y) - .1))) {
 										return true;			
 								}
-						}*/
+						}*//*
 
 				}
 				return false;
 		}
-}
+}*/

@@ -50,11 +50,11 @@ namespace AssemblyCSharp
 				//cant just be on tick, gotta be on control movement too...
 				public bool AnyCollisions (float xDelta, float yDelta)
 				{
-						if (CollisionManager.isCollidingWithBotWall (currentShape))
+						if (currentShape.isCollidingWithBotWall ())
 								return true;
 
 						foreach (Shape shape in listOfShapes) { //for each object in the scene that is colliable
-								if (CollisionManager.isColliding (currentShape, shape, xDelta, yDelta))
+								if (currentShape.collides (shape, xDelta, yDelta))
 										return true;
 						}
 
@@ -86,8 +86,7 @@ namespace AssemblyCSharp
 						return newObj;
 				}
 
-
-
+				
 		}
 }
 
