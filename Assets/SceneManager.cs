@@ -17,6 +17,7 @@ namespace AssemblyCSharp
 				public Shape currentShape;
 				private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
 				private List<UnityEngine.GameObject> listOfPossibleShapes = new List<UnityEngine.GameObject> ();
+				public int placedBlockCount = 0;
 
 				public SceneManager ()
 				{
@@ -35,6 +36,7 @@ namespace AssemblyCSharp
 						bool collided = false;
 
 						if (AnyCollisions (0, -1)) {
+								++placedBlockCount;
 								listOfShapes.Add (currentShape); //might need to copy it explictly
 								currentShape.disablePlayerControls ();
 								currentShape = new Shape (SpawnRandomizedTetrisBlock ());
@@ -43,6 +45,7 @@ namespace AssemblyCSharp
 								currentShape.translate (0, -1, 0);
 						}
 				}
+				//todo - need end case, store score somewhere for leaderboard later
 
 				//cant just be on tick, gotta be on control movement too...
 				public bool AnyCollisions (float xDelta, float yDelta)
