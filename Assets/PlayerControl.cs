@@ -13,6 +13,9 @@ namespace AssemblyCSharp
 {
 		public class PlayerControl : MonoBehaviour
 		{		
+				//TBH, the rotations aren't true rotations for some shapes.
+				//they are true for all except, long piece, up-side-up and twin, square (none)
+				//modify the rotate function per shape.
 				void Update ()
 				{
 						//TODO - I need to pass in vector I'm about to move into AnyCollisions, rather than just tryint to do -1 for y...
@@ -37,13 +40,14 @@ namespace AssemblyCSharp
 								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, -1))												
 										transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
 						}
+						//todo - make this the up arrow later, just one rotation button
 						if (Input.GetKeyDown (KeyCode.D)) { 
-								//todo - need to check to make sure rotation doesn't move block outside of wall
-								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (true);
+								//todo - need to check to make sure rotation doesn't move block outside of wall								
+								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate ();
 						}
 						if (Input.GetKeyDown (KeyCode.A)) { 
 								//todo - need to check to make sure rotation doesn't move block outside of wall
-								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (false);
+								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate ();
 						}
 						if (Input.GetKeyDown (KeyCode.Z)) { 
 								//todo - error checking of course

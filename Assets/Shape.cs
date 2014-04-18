@@ -13,22 +13,33 @@ using System.Collections.Generic;
 
 namespace AssemblyCSharp
 {
+		public enum RotationStyles
+		{
+				none,
+				flip90,
+				full360
+	}
+		;
+
 		public class Shape
 		{				
 				private UnityEngine.GameObject compositeGameObject;
+				private RotationStyles rStyle;
+				private bool flipRot = true;
 
 				//Hide default constructor
 				private Shape ()
 				{
 				}
 
-				public Shape (UnityEngine.GameObject compositeGameObject)
+				public Shape (UnityEngine.GameObject compositeGameObject, RotationStyles rotationStyle)
 				{
 						if (compositeGameObject == null)
 								throw new ArgumentNullException ("A shape MUST contain a game object!");
 
 						this.compositeGameObject = compositeGameObject;						
 						enablePlayerControls ();
+						rStyle = rotationStyle;
 				}
 
 				//cleans up UI of shape
@@ -45,6 +56,28 @@ namespace AssemblyCSharp
 						rotation = compositeGameObject.transform.eulerAngles;
 						rotation.z = (rotation.z + (90 * (clockwise ? 1 : -1)));
 						compositeGameObject.transform.eulerAngles = rotation;
+				}
+				public void Rotate ()
+				{
+						UnityEngine.Debug.Log ("Trying to rotate!");
+						UnityEngine.Vector3 rotation;	
+
+						switch (rStyle) {
+						case RotationStyles.none:
+								break;
+						case RotationStyles.flip90:
+								rotation = compositeGameObject.transform.eulerAngles;
+								rotation.z = (rotation.z + (90 * (flipRot ? 1 : -1)));
+								compositeGameObject.transform.eulerAngles = rotation;
+								flipRot = !flipRot;
+								break;
+						case RotationStyles.full360:
+								rotation = compositeGameObject.transform.eulerAngles;
+								rotation.z = (rotation.z + (90 * (true ? 1 : -1)));
+								compositeGameObject.transform.eulerAngles = rotation;
+								break;
+						}
+
 				}
 
 				//Can I get away with hiding any direct access to children?

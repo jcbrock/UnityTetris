@@ -23,8 +23,13 @@ namespace AssemblyCSharp
 						xStart -= (float)0.5;
 						int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
 						UnityEngine.Vector3 temp = new UnityEngine.Vector3 (xStart, (float)-.5, 0);
-		
-						return new Shape (SpawnNewBlock (listOfPossibleShapes [randomShape], temp, rotation)); //eventually replace with random shape...
+						RotationStyles rotationStyle = RotationStyles.full360;
+						if (randomShape == 1 || randomShape == 3)
+								rotationStyle = RotationStyles.flip90;
+						else if (randomShape == 2)
+								rotationStyle = RotationStyles.none; //square
+
+						return new Shape (SpawnNewBlock (listOfPossibleShapes [randomShape], temp, rotation), rotationStyle); //eventually replace with random shape...
 				}
 	
 				private UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, UnityEngine.Vector3 position, int rotation)
