@@ -16,75 +16,76 @@ namespace AssemblyCSharp
 		{
 				public Shape currentShape;
 				private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
-				private List<UnityEngine.GameObject> listOfPossibleShapes = new List<UnityEngine.GameObject> ();
+				public int placedBlockCount = 0;
+				private ShapeFactory factory;
+				private bool isGamePaused = false;
 
 				public SceneManager ()
 				{
 						//grid = new int[10, 25];					
 						//listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("TestCD2")));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape1"));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape2"));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape3"));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape4"));
+						factory = new ShapeFactory ();
 				}
-			
+
+				public void StartNewGame ()
+				{												
+						currentShape = factory.SpawnRandomizedTetrisShape ();
+				}
+
+				public void PauseGame ()
+				{
+						isGamePaused = true;
+				}
+
+				public void ResumeGame ()
+				{
+						isGamePaused = false;
+				}
+
+				public void EndGame ()
+				{
+						//todo - write score somewhere for the leaderboard						
+						foreach (Shape s in listOfShapes) {
+								s.DeleteShape ();
+						}
+						currentShape.DeleteShape ();
+						listOfShapes.Clear ();						
+						currentShape = null;
+						placedBlockCount = 0;
+				}
+
 				public void Tick ()
 				{			
+						if (isGamePaused || currentShape == null)
+								return;
 						//currentShape.Tick();
 						//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
-						bool collided = false;
+						//bool collided = false;
 
 						if (AnyCollisions (0, -1)) {
+								++placedBlockCount;
 								listOfShapes.Add (currentShape); //might need to copy it explictly
 								currentShape.disablePlayerControls ();
-								currentShape = new Shape (SpawnRandomizedTetrisBlock ());
+								currentShape = factory.SpawnRandomizedTetrisShape ();
 
 						} else {
 								currentShape.translate (0, -1, 0);
 						}
 				}
 
-				//cant just be on tick, gotta be on control movement too...
+				//todo - cant just be on tick, gotta be on control movement too...
 				public bool AnyCollisions (float xDelta, float yDelta)
 				{
-						if (CollisionManager.isCollidingWithBotWall (currentShape))
+						if (currentShape.isCollidingWithBotWall ())
 								return true;
 
 						foreach (Shape shape in listOfShapes) { //for each object in the scene that is colliable
-								if (CollisionManager.isColliding (currentShape, shape, xDelta, yDelta))
+								if (currentShape.collides (shape, xDelta, yDelta))
 										return true;
 						}
 
 						return false;
 				}
-
-				UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
-				{
-						int randomShape = UnityEngine.Random.Range (0, 4); //4 = number of possible shapes
-						float xStart = UnityEngine.Random.Range (1, 10); //10 = length of tetris board (x)
-						xStart -= (float)0.5;
-						int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
-						UnityEngine.Vector3 temp = new UnityEngine.Vector3 (xStart, (float)-.5, 0);
-
-						return SpawnNewBlock (listOfPossibleShapes [randomShape], temp, rotation); //eventually replace with random shape...
-				}
-		
-				UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, UnityEngine.Vector3 position, int rotation)
-				{
-
-						UnityEngine.GameObject newObj = (UnityEngine.GameObject)UnityEngine.MonoBehaviour.Instantiate (objectShape,
-			                                             position,
-			                                                                     UnityEngine.Quaternion.identity);
-
-						UnityEngine.Vector3 currentRotation;		
-						currentRotation = newObj.transform.eulerAngles;
-						currentRotation.z = (currentRotation.z + (90 * rotation * -1));
-						newObj.transform.eulerAngles = currentRotation;
-						return newObj;
-				}
-
-
-
 		}
 }
 

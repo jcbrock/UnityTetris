@@ -7,7 +7,7 @@
 //     the code is regenerated. 
 // </auto-generated>
 //------------------------------------------------------------------------------
-using System;
+/*using System;
 namespace AssemblyCSharp
 {
 		public class Block
@@ -59,5 +59,5 @@ namespace AssemblyCSharp
 					
 				}				
 		}
-}
+}*/
 

@@ -14,8 +14,7 @@ using System.Collections.Generic;
 namespace AssemblyCSharp
 {
 		public class Shape
-		{
-				public List<Block> blocks;
+		{				
 				private UnityEngine.GameObject compositeGameObject;
 
 				//Hide default constructor
@@ -28,9 +27,14 @@ namespace AssemblyCSharp
 						if (compositeGameObject == null)
 								throw new ArgumentNullException ("A shape MUST contain a game object!");
 
-						this.compositeGameObject = compositeGameObject;
-						blocks = new List<Block>{new Block(compositeGameObject)};
-						setPlayerControls (true);
+						this.compositeGameObject = compositeGameObject;						
+						enablePlayerControls ();
+				}
+
+				//cleans up UI of shape
+				public void DeleteShape ()
+				{
+						UnityEngine.GameObject.Destroy (compositeGameObject);
 				}
 
 				public void Rotate90Degrees (bool clockwise)
@@ -68,26 +72,87 @@ namespace AssemblyCSharp
 				}
 				private void setPlayerControls (bool turnOn)
 				{
-						var foo = ((PlayerControl)compositeGameObject.GetComponent<PlayerControl> ());
-						if (foo != null)
-								foo.enabled = turnOn;
+						var playerControl = ((PlayerControl)compositeGameObject.GetComponent<PlayerControl> ());
+						if (playerControl != null)
+								playerControl.enabled = turnOn;
 						else
-								UnityEngine.Debug.Log ("No player control found!");
+								UnityEngine.Debug.Log ("No player control found!"); //todo - replace with an assert of some kind
 				}
-
-				//TODO - fix this encapsulation
-				public UnityEngine.Transform GetGameObjectTransform ()
+				
+				//I suppose I could write my own detection here for colliding with another shape...
+				public bool collides (Shape shape, float xDelta, float yDelta)
 				{
-						
-						//	var foo = compositeGameObject.GetComponent ("PlayerControl");
-						//	var foo2 = compositeGameObject.GetComponent ("script");
-						//	var foo3 = compositeGameObject.GetComponent ("Script");
-						//	var foo4 = ((PlayerControl)compositeGameObject.GetComponent<PlayerControl> ());
-					
-						return compositeGameObject.transform;
+						//TODO - clean this up... can't assume that Shape's GO is always a composite. Sometimes it is just a plain GO
+						var foo = this.compositeGameObject.transform;
+						var bar = shape.compositeGameObject.transform;
+						//UnityEngine.Debug.Log (bar);
+						if (xDelta == -1) {
+								//UnityEngine.Debug.Log ("Moving Left...");
+						}
+						foreach (UnityEngine.Transform child1 in foo) {
+								//UnityEngine.Debug.Log ("In outer loop");
+								foreach (UnityEngine.Transform child2 in bar) {
+										//	UnityEngine.Debug.Log ("In inner loop");
+										//Move -delta AFTER x2
+										if (xDelta == -1) {
+												//UnityEngine.Debug.Log ("Child1 x,y: " + child1.position.x + ", " + child1.position.y);
+												//UnityEngine.Debug.Log ("Child2 x,y: " + child2.position.x + ", " + child2.position.y);
+												//UnityEngine.Debug.Log (((Mathf.Abs ((child1.position.x + xDelta) - child2.position.x) * 2)));
+										}
+										if (((UnityEngine.Mathf.Abs ((child1.position.x + xDelta) - child2.position.x) * 2) < ((((UnityEngine.BoxCollider)child1.collider).size.x + ((UnityEngine.BoxCollider)child2.collider).size.x) - .1) &&
+												(UnityEngine.Mathf.Abs ((child1.position.y + yDelta) - child2.position.y) * 2) < ((((UnityEngine.BoxCollider)child1.collider).size.y + ((UnityEngine.BoxCollider)child2.collider).size.y) - .1))) {
+												return true;			
+										}
+								}
+						}
+						return false;
+
 				}
 
-
+				//TODO - fix this up...... obviously wall should not be hard coded
+				//Adding Collision stuff here since this is where the world object container is
+				public bool isCollidingWithLeftWall ()
+				{
+						var foo = this.compositeGameObject.transform;
+						foreach (UnityEngine.Transform child1 in foo) {
+								if (((child1.position.x - (child1.renderer.bounds.size.x / 2.0)) - 1.0) < -.1) { //jitter (why it isnt 0)
+										return true;	
+								}
+						}
+						return false;
+				}
+		
+				public bool isCollidingWithRightWall ()
+				{
+						var foo = this.compositeGameObject.transform;
+						foreach (UnityEngine.Transform child1 in foo) {
+								if (((child1.position.x + (child1.renderer.bounds.size.x / 2.0)) + 1.0) > 10.1) {
+										return true;	
+								}
+						}
+						return false;
+				}
+				public bool isCollidingWithBotWall ()
+				{
+						var foo = this.compositeGameObject.transform;
+						foreach (UnityEngine.Transform child1 in foo) {
+								if (((child1.position.y - (child1.renderer.bounds.size.y / 2.0) - 1.0)) < -25.1) {
+										return true;	
+								}
+						}
+						return false;
+				}
+		
+				public bool isCollidingWithWall ()
+				{
+						var foo = this.compositeGameObject.transform;
+						foreach (UnityEngine.Transform child1 in foo) {
+								if (child1.position.x < 0 || child1.position.x > 10 || child1.position.y < -25) {
+										return true;	
+								}
+						}
+						return false;
+				}
 		}
 }
 

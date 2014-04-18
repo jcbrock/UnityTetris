@@ -17,11 +17,12 @@ namespace AssemblyCSharp
 				{
 						//TODO - I need to pass in vector I'm about to move into AnyCollisions, rather than just tryint to do -1 for y...
 						//Clean up this mess too...
-						if (Input.GetKeyDown (KeyCode.LeftArrow)) { 
-								if (!CollisionManager.isCollidingWithLeftWall (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape) && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (-1, 0))									
+						if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+							
+								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithLeftWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (-1, 0))									
 										transform.Translate (new UnityEngine.Vector3 ((float)-1, 0, 0), UnityEngine.Space.World);
 								else {
-										CollisionManager.isCollidingWithLeftWall (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape);
+										AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithLeftWall ();
 								}
 						}
 						if (Input.GetKeyDown (KeyCode.UpArrow)) {
@@ -29,7 +30,7 @@ namespace AssemblyCSharp
 										transform.Translate (new UnityEngine.Vector3 (0, (float)1, 0), UnityEngine.Space.World);	
 						}
 						if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-								if (!CollisionManager.isCollidingWithRightWall (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape) && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (1, 0))													
+								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithRightWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (1, 0))													
 										transform.Translate (new UnityEngine.Vector3 ((float)1, 0, 0), UnityEngine.Space.World);	
 						}
 						if (Input.GetKeyDown (KeyCode.DownArrow)) { 
@@ -37,9 +38,11 @@ namespace AssemblyCSharp
 										transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
 						}
 						if (Input.GetKeyDown (KeyCode.D)) { 
+								//todo - need to check to make sure rotation doesn't move block outside of wall
 								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (true);
 						}
 						if (Input.GetKeyDown (KeyCode.A)) { 
+								//todo - need to check to make sure rotation doesn't move block outside of wall
 								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate90Degrees (false);
 						}
 						if (Input.GetKeyDown (KeyCode.Z)) { 

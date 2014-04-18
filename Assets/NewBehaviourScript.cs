@@ -15,7 +15,8 @@ namespace AssemblyCSharp
 						//sceneMgr.currentObject = UnityEngine.GameObject.Find ("tempblock");
 						//sceneMgr.currentObject = UnityEngine.GameObject.Find ("CompositeGO");
 						//sceneMgr.currentBlock = new Block (UnityEngine.GameObject.Find ("TestCD"));
-						sceneMgr.currentShape = new Shape (UnityEngine.GameObject.Find ("TestCD"));
+						//sceneMgr.currentShape = AssemblyCSharp.ShapeFactory.SpawnRandomizedTetrisShape ();
+						//sceneMgr.currentShape = new Shape (UnityEngine.GameObject.Find ("TestCD"));
 						//sceneMgr.currentBlock.x = sceneMgr.currentBlock.currentObject.transform.position.x; 
 						//sceneMgr.currentBlock.y = sceneMgr.currentBlock.currentObject.transform.position.y;
 						//sceneMgr.currentBlock.width = ((UnityEngine.BoxCollider2D)sceneMgr.currentBlock.currentObject.transform.collider2D).size.x; 
