@@ -26,7 +26,7 @@ public class DelegateMenu : MonoBehaviour
 				buttonHeight = screenHeight * 0.2f;
 				buttonWidth = screenWidth * 0.4f;
 
-				menuFunction = anyKey;
+				menuFunction = mainMenu;
 		}
 
 		void OnGUI ()
@@ -44,19 +44,16 @@ public class DelegateMenu : MonoBehaviour
 		                     		screenWidth * 0.1f, screenHeight * 0.1f), 
 		           			"Press any key to continue");
 		}
-
-		
-		//GUI.Button startGame = new GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.1f, 
-		//                                          buttonWidth, buttonHeight), "Start Game");
+	
 		void mainMenu ()
 		{
-				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.1f, 
+				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.4f, 
 		                                                     buttonWidth, buttonHeight), "Start New Game")) {
 						//make sure to kick off new game
 						menuFunction = inGameHUD;
 						AssemblyCSharp.NewBehaviourScript.sceneMgr.StartNewGame ();
 				}
-				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.5f, 
+				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.7f, 
 		                        buttonWidth, buttonHeight), "Quit Game")) {
 						Application.Quit ();
 				}

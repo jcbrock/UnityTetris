@@ -44,13 +44,19 @@ namespace AssemblyCSharp
 
 				public void EndGame ()
 				{
-						//write score somewhere for the leaderboard
-						//clear shit - both in UI and behind the scenese
+						//todo - write score somewhere for the leaderboard						
+						foreach (Shape s in listOfShapes) {
+								s.DeleteShape ();
+						}
+						currentShape.DeleteShape ();
+						listOfShapes.Clear ();						
+						currentShape = null;
+						placedBlockCount = 0;
 				}
 
 				public void Tick ()
 				{			
-						if (isGamePaused)
+						if (isGamePaused || currentShape == null)
 								return;
 						//currentShape.Tick();
 						//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
@@ -66,9 +72,8 @@ namespace AssemblyCSharp
 								currentShape.translate (0, -1, 0);
 						}
 				}
-				//todo - need end case, store score somewhere for leaderboard later
 
-				//cant just be on tick, gotta be on control movement too...
+				//todo - cant just be on tick, gotta be on control movement too...
 				public bool AnyCollisions (float xDelta, float yDelta)
 				{
 						if (currentShape.isCollidingWithBotWall ())
@@ -81,33 +86,6 @@ namespace AssemblyCSharp
 
 						return false;
 				}
-				/*
-				UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
-				{
-						int randomShape = UnityEngine.Random.Range (0, 4); //4 = number of possible shapes
-						float xStart = UnityEngine.Random.Range (1, 10); //10 = length of tetris board (x)
-						xStart -= (float)0.5;
-						int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
-						UnityEngine.Vector3 temp = new UnityEngine.Vector3 (xStart, (float)-.5, 0);
-
-						return SpawnNewBlock (listOfPossibleShapes [randomShape], temp, rotation); //eventually replace with random shape...
-				}
-		
-				UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, UnityEngine.Vector3 position, int rotation)
-				{
-
-						UnityEngine.GameObject newObj = (UnityEngine.GameObject)UnityEngine.MonoBehaviour.Instantiate (objectShape,
-			                                             position,
-			                                                                     UnityEngine.Quaternion.identity);
-
-						UnityEngine.Vector3 currentRotation;		
-						currentRotation = newObj.transform.eulerAngles;
-						currentRotation.z = (currentRotation.z + (90 * rotation * -1));
-						newObj.transform.eulerAngles = currentRotation;
-						return newObj;
-				}
-
-				*/
 		}
 }
 

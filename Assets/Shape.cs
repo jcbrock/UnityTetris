@@ -31,6 +31,12 @@ namespace AssemblyCSharp
 						enablePlayerControls ();
 				}
 
+				//cleans up UI of shape
+				public void DeleteShape ()
+				{
+						UnityEngine.GameObject.Destroy (compositeGameObject);
+				}
+
 				public void Rotate90Degrees (bool clockwise)
 				{
 
