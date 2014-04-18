@@ -54,7 +54,7 @@ public class DelegateMenu : MonoBehaviour
 		                                                     buttonWidth, buttonHeight), "Start New Game")) {
 						//make sure to kick off new game
 						menuFunction = inGameHUD;
-
+						AssemblyCSharp.NewBehaviourScript.sceneMgr.StartNewGame ();
 				}
 				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.5f, 
 		                        buttonWidth, buttonHeight), "Quit Game")) {
@@ -64,36 +64,32 @@ public class DelegateMenu : MonoBehaviour
 		void mainMenuWithResume ()
 		{
 				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.1f, 
-		                          buttonWidth, buttonHeight), "Continue Game")) {
-						//make sure to kick off current game
+		                          buttonWidth, buttonHeight), "Continue Game")) {						
 						menuFunction = inGameHUD;
-			
+						AssemblyCSharp.NewBehaviourScript.sceneMgr.ResumeGame ();
 				}
 				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.4f, 
-		                          buttonWidth, buttonHeight), "Start New Game")) {
-						//make sure to kick off new game
+		                          buttonWidth, buttonHeight), "Start New Game")) {						
 						menuFunction = inGameHUD;
-			
+						AssemblyCSharp.NewBehaviourScript.sceneMgr.EndGame ();
+						AssemblyCSharp.NewBehaviourScript.sceneMgr.StartNewGame ();
+						AssemblyCSharp.NewBehaviourScript.sceneMgr.ResumeGame ();
 				}
 				if (GUI.Button (new Rect ((screenWidth - buttonWidth) * 0.5f, screenHeight * 0.7f, 
 		                          buttonWidth, buttonHeight), "Quit Game")) {
 						Application.Quit ();
 				}
-		}
 
-		void removeMenu ()
-		{
-				if (Input.GetKeyDown (KeyCode.Escape)) {
-						//make sure to pause game
-						menuFunction = mainMenuWithResume;
-				}
+				GUI.Label (new Rect (screenWidth * 0.8f, screenHeight * 0.1f, 
+		                     screenWidth * 0.2f, screenHeight * 0.1f), 
+		           "Placed blocks: " + AssemblyCSharp.NewBehaviourScript.sceneMgr.placedBlockCount);
 		}
 
 		void inGameHUD ()
 		{
-				if (Input.GetKeyDown (KeyCode.Escape)) {
-						//make sure to pause game
+				if (Input.GetKeyDown (KeyCode.Escape)) {						
 						menuFunction = mainMenuWithResume;
+						AssemblyCSharp.NewBehaviourScript.sceneMgr.PauseGame ();
 				}
 				GUI.Label (new Rect (screenWidth * 0.8f, screenHeight * 0.1f, 
 		                    screenWidth * 0.2f, screenHeight * 0.1f), 

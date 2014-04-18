@@ -16,30 +16,51 @@ namespace AssemblyCSharp
 		{
 				public Shape currentShape;
 				private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
-				private List<UnityEngine.GameObject> listOfPossibleShapes = new List<UnityEngine.GameObject> ();
 				public int placedBlockCount = 0;
+				private ShapeFactory factory;
+				private bool isGamePaused = false;
 
 				public SceneManager ()
 				{
 						//grid = new int[10, 25];					
 						//listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("TestCD2")));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape1"));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape2"));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape3"));
-						listOfPossibleShapes.Add (UnityEngine.GameObject.Find ("Shape4"));
+						factory = new ShapeFactory ();
 				}
-			
+
+				public void StartNewGame ()
+				{												
+						currentShape = factory.SpawnRandomizedTetrisShape ();
+				}
+
+				public void PauseGame ()
+				{
+						isGamePaused = true;
+				}
+
+				public void ResumeGame ()
+				{
+						isGamePaused = false;
+				}
+
+				public void EndGame ()
+				{
+						//write score somewhere for the leaderboard
+						//clear shit - both in UI and behind the scenese
+				}
+
 				public void Tick ()
 				{			
+						if (isGamePaused)
+								return;
 						//currentShape.Tick();
 						//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
-						bool collided = false;
+						//bool collided = false;
 
 						if (AnyCollisions (0, -1)) {
 								++placedBlockCount;
 								listOfShapes.Add (currentShape); //might need to copy it explictly
 								currentShape.disablePlayerControls ();
-								currentShape = new Shape (SpawnRandomizedTetrisBlock ());
+								currentShape = factory.SpawnRandomizedTetrisShape ();
 
 						} else {
 								currentShape.translate (0, -1, 0);
@@ -60,7 +81,7 @@ namespace AssemblyCSharp
 
 						return false;
 				}
-
+				/*
 				UnityEngine.GameObject SpawnRandomizedTetrisBlock ()
 				{
 						int randomShape = UnityEngine.Random.Range (0, 4); //4 = number of possible shapes
@@ -86,7 +107,7 @@ namespace AssemblyCSharp
 						return newObj;
 				}
 
-				
+				*/
 		}
 }
 
