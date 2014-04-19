@@ -21,8 +21,6 @@ namespace AssemblyCSharp
 						//sceneMgr.currentBlock.y = sceneMgr.currentBlock.currentObject.transform.position.y;
 						//sceneMgr.currentBlock.width = ((UnityEngine.BoxCollider2D)sceneMgr.currentBlock.currentObject.transform.collider2D).size.x; 
 						//sceneMgr.currentBlock.height = ((UnityEngine.BoxCollider2D)sceneMgr.currentBlock.currentObject.transform.collider2D).size.y;
-		
-
 				}
 	
 				// Update is called once per frame

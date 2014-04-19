@@ -15,6 +15,7 @@ namespace AssemblyCSharp
 		public class SceneManager// : UnityEngine.MonoBehaviour
 		{
 				public Shape currentShape;
+				public Shape previewShape;
 				private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
 				public int placedBlockCount = 0;
 				private ShapeFactory factory;
@@ -30,6 +31,11 @@ namespace AssemblyCSharp
 				public void StartNewGame ()
 				{												
 						currentShape = factory.SpawnRandomizedTetrisShape ();
+						//currentShape.translate (0, -5, 0);
+						currentShape.enablePlayerControls ();
+						previewShape = factory.SpawnRandomizedTetrisShape2 ();
+						previewShape.disablePlayerControls ();
+						//previewShape.translate (0, 3, 0);
 				}
 
 				public void PauseGame ()
@@ -128,12 +134,12 @@ namespace AssemblyCSharp
 
 										}
 								}
-								
-								
-
-
-
-								currentShape = factory.SpawnRandomizedTetrisShape ();
+																
+								currentShape = previewShape;
+								currentShape.translate (10, 0, 0);
+								currentShape.enablePlayerControls ();
+								previewShape = factory.SpawnRandomizedTetrisShape2 ();
+								//previewShape.translate (0, 5, 0);
 
 						} else {
 								currentShape.translate (0, -1, 0);

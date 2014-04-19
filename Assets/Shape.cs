@@ -40,7 +40,7 @@ namespace AssemblyCSharp
 
 						Name = compositeGameObject.name;
 						this.compositeGameObject = compositeGameObject;						
-						enablePlayerControls ();
+						//enablePlayerControls ();
 						rStyle = rotationStyle;
 				}
 
@@ -108,14 +108,29 @@ namespace AssemblyCSharp
 								rotation.z = (rotation.z + (90 * (flipRot ? 1 : -1)));
 								compositeGameObject.transform.eulerAngles = rotation;
 								flipRot = !flipRot;
+
+								if (this.isCollidingWithLeftWall () || this.isCollidingWithRightWall () || this.isCollidingWithBotWall ()) {
+										//flip back
+										rotation = compositeGameObject.transform.eulerAngles;
+										rotation.z = (rotation.z + (90 * (flipRot ? 1 : -1)));
+										compositeGameObject.transform.eulerAngles = rotation;
+										flipRot = !flipRot;
+								}
 								break;
 						case RotationStyles.full360:
 								rotation = compositeGameObject.transform.eulerAngles;
 								rotation.z = (rotation.z + (90 * (true ? 1 : -1)));
 								compositeGameObject.transform.eulerAngles = rotation;
+
+								if (this.isCollidingWithLeftWall () || this.isCollidingWithRightWall () || this.isCollidingWithBotWall ()) {
+										//flip back
+										rotation = compositeGameObject.transform.eulerAngles;
+										rotation.z = (rotation.z + (90 * (false ? 1 : -1)));
+										compositeGameObject.transform.eulerAngles = rotation;
+								}
 								break;
 						}
-
+						compositeGameObject.audio.Play (); //TODO - move off of rotate, probably make a puclib function for it
 				}
 
 				//Can I get away with hiding any direct access to children?
@@ -164,26 +179,13 @@ namespace AssemblyCSharp
 
 				//I suppose I could write my own detection here for colliding with another shape...
 				public bool collides (Shape shape, float xDelta, float yDelta)
-				{
-						//TODO - clean this up... can't assume that Shape's GO is always a composite. Sometimes it is just a plain GO
-						var foo = this.compositeGameObject.transform;
-						var bar = shape.compositeGameObject.transform;
-						//UnityEngine.Debug.Log (bar);
-						if (xDelta == -1) {
-								//UnityEngine.Debug.Log ("Moving Left...");
-						}
-						foreach (UnityEngine.Transform child1 in foo) {
-								//UnityEngine.Debug.Log ("In outer loop");
-								foreach (UnityEngine.Transform child2 in bar) {
-										//	UnityEngine.Debug.Log ("In inner loop");
-										//Move -delta AFTER x2
-										if (xDelta == -1) {
-												//UnityEngine.Debug.Log ("Child1 x,y: " + child1.position.x + ", " + child1.position.y);
-												//UnityEngine.Debug.Log ("Child2 x,y: " + child2.position.x + ", " + child2.position.y);
-												//UnityEngine.Debug.Log (((Mathf.Abs ((child1.position.x + xDelta) - child2.position.x) * 2)));
-										}
-										if (((UnityEngine.Mathf.Abs ((child1.position.x + xDelta) - child2.position.x) * 2) < ((((UnityEngine.BoxCollider)child1.collider).size.x + ((UnityEngine.BoxCollider)child2.collider).size.x) - .1) &&
-												(UnityEngine.Mathf.Abs ((child1.position.y + yDelta) - child2.position.y) * 2) < ((((UnityEngine.BoxCollider)child1.collider).size.y + ((UnityEngine.BoxCollider)child2.collider).size.y) - .1))) {
+				{						
+						var shape1 = this.compositeGameObject.transform;
+						var shape2 = shape.compositeGameObject.transform;
+						foreach (UnityEngine.Transform block1 in shape1) {								
+								foreach (UnityEngine.Transform block2 in shape2) {
+										if (((UnityEngine.Mathf.Abs ((block1.position.x + xDelta) - block2.position.x) * 2) < ((((UnityEngine.BoxCollider)block1.collider).size.x + ((UnityEngine.BoxCollider)block2.collider).size.x) - .1) &&
+												(UnityEngine.Mathf.Abs ((block1.position.y + yDelta) - block2.position.y) * 2) < ((((UnityEngine.BoxCollider)block1.collider).size.y + ((UnityEngine.BoxCollider)block2.collider).size.y) - .1))) {
 												return true;			
 										}
 								}
