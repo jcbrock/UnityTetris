@@ -7,6 +7,7 @@ namespace AssemblyCSharp
 		public class ShapeFactory
 		{
 				private List<UnityEngine.GameObject> listOfPossibleShapes = new List<UnityEngine.GameObject> ();
+				private int debugCounter = 0;
 				
 				public ShapeFactory ()
 				{
@@ -43,6 +44,9 @@ namespace AssemblyCSharp
 						currentRotation = newObj.transform.eulerAngles;
 						currentRotation.z = (currentRotation.z + (90 * rotation * -1));
 						newObj.transform.eulerAngles = currentRotation;
+
+						newObj.name += debugCounter;
+						debugCounter++;
 						return newObj;
 				}
 		}

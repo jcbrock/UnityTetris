@@ -26,6 +26,7 @@ namespace AssemblyCSharp
 				private UnityEngine.GameObject compositeGameObject;
 				private RotationStyles rStyle;
 				private bool flipRot = true;
+				public string Name; //for debugging
 
 				//Hide default constructor
 				private Shape ()
@@ -37,6 +38,7 @@ namespace AssemblyCSharp
 						if (compositeGameObject == null)
 								throw new ArgumentNullException ("A shape MUST contain a game object!");
 
+						Name = compositeGameObject.name;
 						this.compositeGameObject = compositeGameObject;						
 						enablePlayerControls ();
 						rStyle = rotationStyle;
@@ -46,6 +48,42 @@ namespace AssemblyCSharp
 				public void DeleteShape ()
 				{
 						UnityEngine.GameObject.Destroy (compositeGameObject);
+				}
+
+				public void DeleteBlocksInRow (int row)
+				{
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+								if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) == row)
+										UnityEngine.GameObject.Destroy (compositeGameObject.transform.GetChild (i).gameObject);
+						}						
+				}
+
+				public bool ContainsBlockAboveDeletedRow (int row)
+				{
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+								if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) > row)
+										return true;
+						}
+						return false;
+				}
+				public bool ShiftBlocksAboveDeletedRow (int row)
+				{
+						bool shiftedSomethingDown = false;
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+								if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) > row) {
+										compositeGameObject.transform.GetChild (i).transform.Translate (new UnityEngine.Vector3 (0, -1, 0), UnityEngine.Space.World);
+										shiftedSomethingDown = true;
+								}
+						}
+						if (shiftedSomethingDown)
+								return true;
+
+						return false;
+				}
+
+				public int BlockCount ()
+				{
+						return compositeGameObject.transform.childCount;
 				}
 
 				public void Rotate90Degrees (bool clockwise)
@@ -109,9 +147,21 @@ namespace AssemblyCSharp
 						if (playerControl != null)
 								playerControl.enabled = turnOn;
 						else
-								UnityEngine.Debug.Log ("No player control found!"); //todo - replace with an assert of some kind
+								UnityEngine.Debug.LogWarning ("No player control found!"); //todo - replace with an assert of some kind
 				}
 				
+				public List<int> GetRowValuesOfSubBlocks ()
+				{
+						List<int> rows = new List<int> ();
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+
+								double rowValue = compositeGameObject.transform.GetChild (i).transform.position.y;
+								//UnityEngine.Debug.Log ("Block row value: " + rowValue.ToString ());
+								rows.Add (Convert.ToInt32 (Math.Floor (rowValue)));
+						}
+						return rows;
+				}
+
 				//I suppose I could write my own detection here for colliding with another shape...
 				public bool collides (Shape shape, float xDelta, float yDelta)
 				{
