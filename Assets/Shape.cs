@@ -130,9 +130,13 @@ namespace AssemblyCSharp
 								}
 								break;
 						}
-						compositeGameObject.audio.Play (); //TODO - move off of rotate, probably make a puclib function for it
+						
 				}
 
+				public void PlayCollisionAudio ()
+				{
+						compositeGameObject.audio.Play ();
+				}
 				//Can I get away with hiding any direct access to children?
 				//i.e. I expose move functions / delete functions on shape which take care of any iteraction with Shape?
 

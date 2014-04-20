@@ -55,6 +55,7 @@ namespace AssemblyCSharp
 								s.DeleteShape ();
 						}
 						currentShape.DeleteShape ();
+						previewShape.DeleteShape ();
 						listOfShapes.Clear ();						
 						currentShape = null;
 						placedBlockCount = 0;
@@ -69,6 +70,7 @@ namespace AssemblyCSharp
 						//bool collided = false;
 
 						if (AnyCollisions (0, -1)) {
+								currentShape.PlayCollisionAudio ();
 								++placedBlockCount;
 								listOfShapes.Add (currentShape); //might need to copy it explictly
 								currentShape.disablePlayerControls ();
@@ -109,6 +111,7 @@ namespace AssemblyCSharp
 												foreach (Shape s in shapesToRemove) {
 														listOfShapes.Remove (s);
 														UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
+														s.DeleteShape ();
 												}
 												List<Shape> debugList = new List<Shape> ();
 												foreach (Shape s2 in listOfShapes) {
