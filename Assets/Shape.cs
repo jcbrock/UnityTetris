@@ -13,28 +13,77 @@ using System.Collections.Generic;
 
 namespace AssemblyCSharp
 {
+		public enum RotationStyles
+		{
+				none,
+				flip90,
+				full360
+	}
+		;
+
 		public class Shape
 		{				
 				private UnityEngine.GameObject compositeGameObject;
+				private RotationStyles rStyle;
+				private bool flipRot = true;
+				public string Name; //for debugging
 
 				//Hide default constructor
 				private Shape ()
 				{
 				}
 
-				public Shape (UnityEngine.GameObject compositeGameObject)
+				public Shape (UnityEngine.GameObject compositeGameObject, RotationStyles rotationStyle)
 				{
 						if (compositeGameObject == null)
 								throw new ArgumentNullException ("A shape MUST contain a game object!");
 
+						Name = compositeGameObject.name;
 						this.compositeGameObject = compositeGameObject;						
-						enablePlayerControls ();
+						//enablePlayerControls ();
+						rStyle = rotationStyle;
 				}
 
 				//cleans up UI of shape
 				public void DeleteShape ()
 				{
 						UnityEngine.GameObject.Destroy (compositeGameObject);
+				}
+
+				public void DeleteBlocksInRow (int row)
+				{
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+								if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) == row)
+										UnityEngine.GameObject.Destroy (compositeGameObject.transform.GetChild (i).gameObject);
+						}						
+				}
+
+				public bool ContainsBlockAboveDeletedRow (int row)
+				{
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+								if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) > row)
+										return true;
+						}
+						return false;
+				}
+				public bool ShiftBlocksAboveDeletedRow (int row)
+				{
+						bool shiftedSomethingDown = false;
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+								if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) > row) {
+										compositeGameObject.transform.GetChild (i).transform.Translate (new UnityEngine.Vector3 (0, -1, 0), UnityEngine.Space.World);
+										shiftedSomethingDown = true;
+								}
+						}
+						if (shiftedSomethingDown)
+								return true;
+
+						return false;
+				}
+
+				public int BlockCount ()
+				{
+						return compositeGameObject.transform.childCount;
 				}
 
 				public void Rotate90Degrees (bool clockwise)
@@ -46,7 +95,48 @@ namespace AssemblyCSharp
 						rotation.z = (rotation.z + (90 * (clockwise ? 1 : -1)));
 						compositeGameObject.transform.eulerAngles = rotation;
 				}
+				public void Rotate ()
+				{
+						UnityEngine.Debug.Log ("Trying to rotate!");
+						UnityEngine.Vector3 rotation;	
 
+						switch (rStyle) {
+						case RotationStyles.none:
+								break;
+						case RotationStyles.flip90:
+								rotation = compositeGameObject.transform.eulerAngles;
+								rotation.z = (rotation.z + (90 * (flipRot ? 1 : -1)));
+								compositeGameObject.transform.eulerAngles = rotation;
+								flipRot = !flipRot;
+
+								if (this.isCollidingWithLeftWall () || this.isCollidingWithRightWall () || this.isCollidingWithBotWall ()) {
+										//flip back
+										rotation = compositeGameObject.transform.eulerAngles;
+										rotation.z = (rotation.z + (90 * (flipRot ? 1 : -1)));
+										compositeGameObject.transform.eulerAngles = rotation;
+										flipRot = !flipRot;
+								}
+								break;
+						case RotationStyles.full360:
+								rotation = compositeGameObject.transform.eulerAngles;
+								rotation.z = (rotation.z + (90 * (true ? 1 : -1)));
+								compositeGameObject.transform.eulerAngles = rotation;
+
+								if (this.isCollidingWithLeftWall () || this.isCollidingWithRightWall () || this.isCollidingWithBotWall ()) {
+										//flip back
+										rotation = compositeGameObject.transform.eulerAngles;
+										rotation.z = (rotation.z + (90 * (false ? 1 : -1)));
+										compositeGameObject.transform.eulerAngles = rotation;
+								}
+								break;
+						}
+						
+				}
+
+				public void PlayCollisionAudio ()
+				{
+						compositeGameObject.audio.Play ();
+				}
 				//Can I get away with hiding any direct access to children?
 				//i.e. I expose move functions / delete functions on shape which take care of any iteraction with Shape?
 
@@ -76,31 +166,30 @@ namespace AssemblyCSharp
 						if (playerControl != null)
 								playerControl.enabled = turnOn;
 						else
-								UnityEngine.Debug.Log ("No player control found!"); //todo - replace with an assert of some kind
+								UnityEngine.Debug.LogWarning ("No player control found!"); //todo - replace with an assert of some kind
 				}
 				
+				public List<int> GetRowValuesOfSubBlocks ()
+				{
+						List<int> rows = new List<int> ();
+						for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
+
+								double rowValue = compositeGameObject.transform.GetChild (i).transform.position.y;
+								//UnityEngine.Debug.Log ("Block row value: " + rowValue.ToString ());
+								rows.Add (Convert.ToInt32 (Math.Floor (rowValue)));
+						}
+						return rows;
+				}
+
 				//I suppose I could write my own detection here for colliding with another shape...
 				public bool collides (Shape shape, float xDelta, float yDelta)
-				{
-						//TODO - clean this up... can't assume that Shape's GO is always a composite. Sometimes it is just a plain GO
-						var foo = this.compositeGameObject.transform;
-						var bar = shape.compositeGameObject.transform;
-						//UnityEngine.Debug.Log (bar);
-						if (xDelta == -1) {
-								//UnityEngine.Debug.Log ("Moving Left...");
-						}
-						foreach (UnityEngine.Transform child1 in foo) {
-								//UnityEngine.Debug.Log ("In outer loop");
-								foreach (UnityEngine.Transform child2 in bar) {
-										//	UnityEngine.Debug.Log ("In inner loop");
-										//Move -delta AFTER x2
-										if (xDelta == -1) {
-												//UnityEngine.Debug.Log ("Child1 x,y: " + child1.position.x + ", " + child1.position.y);
-												//UnityEngine.Debug.Log ("Child2 x,y: " + child2.position.x + ", " + child2.position.y);
-												//UnityEngine.Debug.Log (((Mathf.Abs ((child1.position.x + xDelta) - child2.position.x) * 2)));
-										}
-										if (((UnityEngine.Mathf.Abs ((child1.position.x + xDelta) - child2.position.x) * 2) < ((((UnityEngine.BoxCollider)child1.collider).size.x + ((UnityEngine.BoxCollider)child2.collider).size.x) - .1) &&
-												(UnityEngine.Mathf.Abs ((child1.position.y + yDelta) - child2.position.y) * 2) < ((((UnityEngine.BoxCollider)child1.collider).size.y + ((UnityEngine.BoxCollider)child2.collider).size.y) - .1))) {
+				{						
+						var shape1 = this.compositeGameObject.transform;
+						var shape2 = shape.compositeGameObject.transform;
+						foreach (UnityEngine.Transform block1 in shape1) {								
+								foreach (UnityEngine.Transform block2 in shape2) {
+										if (((UnityEngine.Mathf.Abs ((block1.position.x + xDelta) - block2.position.x) * 2) < ((((UnityEngine.BoxCollider)block1.collider).size.x + ((UnityEngine.BoxCollider)block2.collider).size.x) - .1) &&
+												(UnityEngine.Mathf.Abs ((block1.position.y + yDelta) - block2.position.y) * 2) < ((((UnityEngine.BoxCollider)block1.collider).size.y + ((UnityEngine.BoxCollider)block2.collider).size.y) - .1))) {
 												return true;			
 										}
 								}
