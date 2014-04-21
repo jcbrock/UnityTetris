@@ -11,50 +11,51 @@ using UnityEngine;
 using System.Collections;
 namespace AssemblyCSharp
 {
-		public class PlayerControl : MonoBehaviour
-		{		
-				//TBH, the rotations aren't true rotations for some shapes.
-				//they are true for all except, long piece, up-side-up and twin, square (none)
-				//modify the rotate function per shape.
-				void Update ()
-				{
-						//TODO - I need to pass in vector I'm about to move into AnyCollisions, rather than just tryint to do -1 for y...
-						//Clean up this mess too...
-						if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+	public class PlayerControl : MonoBehaviour
+	{		
+		//TBH, the rotations aren't true rotations for some shapes.
+		//they are true for all except, long piece, up-side-up and twin, square (none)
+		//modify the rotate function per shape.
+		void Update ()
+		{
+			//TODO - I need to pass in vector I'm about to move into AnyCollisions, rather than just tryint to do -1 for y...
+			//Clean up this mess too...
+			if (Input.GetKeyDown (KeyCode.LeftArrow)) {
 							
-								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithLeftWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (-1, 0))									
-										transform.Translate (new UnityEngine.Vector3 ((float)-1, 0, 0), UnityEngine.Space.World);
-								else {
-										AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithLeftWall ();
-								}
-						}
-						if (Input.GetKeyDown (KeyCode.UpArrow)) {
-								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, 1))			
-										transform.Translate (new UnityEngine.Vector3 (0, (float)1, 0), UnityEngine.Space.World);	
-						}
-						if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithRightWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (1, 0))													
-										transform.Translate (new UnityEngine.Vector3 ((float)1, 0, 0), UnityEngine.Space.World);	
-						}
-						if (Input.GetKeyDown (KeyCode.DownArrow)) { 
-								if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, -1))												
-										transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
-						}
-						//todo - make this the up arrow later, just one rotation button
-						if (Input.GetKeyDown (KeyCode.D)) { 
-								//todo - need to check to make sure rotation doesn't move block outside of wall								
-								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate ();
-						}
-						if (Input.GetKeyDown (KeyCode.A)) { 
-								//todo - need to check to make sure rotation doesn't move block outside of wall
-								AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate ();
-						}
-						if (Input.GetKeyDown (KeyCode.Z)) { 
-								//todo - error checking of course
-								//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
-						}
-				}
+				if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithLeftWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (-1, 0))									
+					transform.Translate (new UnityEngine.Vector3 ((float)-1, 0, 0), UnityEngine.Space.World);
+			
+				//	else {
+				//				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithLeftWall ();
+				//		}
+			}
+			if (Input.GetKeyDown (KeyCode.UpArrow)) {
+				if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, 1))			
+					transform.Translate (new UnityEngine.Vector3 (0, (float)1, 0), UnityEngine.Space.World);	
+			}
+			if (Input.GetKeyDown (KeyCode.RightArrow)) { 
+				if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithRightWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (1, 0))													
+					transform.Translate (new UnityEngine.Vector3 ((float)1, 0, 0), UnityEngine.Space.World);	
+			}
+			if (Input.GetKeyDown (KeyCode.DownArrow)) { 
+				if (!AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithBotWall () && !AssemblyCSharp.NewBehaviourScript.sceneMgr.AnyCollisions (0, -1))												
+					transform.Translate (new UnityEngine.Vector3 (0, (float)-1, 0), UnityEngine.Space.World);	
+			}
+			//todo - make this the up arrow later, just one rotation button
+			if (Input.GetKeyDown (KeyCode.D)) { 
+				//todo - need to check to make sure rotation doesn't move block outside of wall								
+				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate ();
+			}
+			if (Input.GetKeyDown (KeyCode.A)) { 
+				//todo - need to check to make sure rotation doesn't move block outside of wall
+				AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.Rotate ();
+			}
+			if (Input.GetKeyDown (KeyCode.Z)) { 
+				//todo - error checking of course
+				//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
+			}
 		}
+	}
 }
 
 

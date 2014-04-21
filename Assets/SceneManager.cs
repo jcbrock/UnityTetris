@@ -13,192 +13,189 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 namespace AssemblyCSharp
 {
-		public class LeaderboardScore
-		{
-				public string Name { get; set; }
-				public int Score { get; set; }
-				public DateTime Date  { get; set; }
-				public string Version { get; set; }
+	public class LeaderboardScore
+	{
+		public string Name { get; set; }
+		public int Score { get; set; }
+		public DateTime Date  { get; set; }
+		public string Version { get; set; }
 
-				public LeaderboardScore (string name, int score, DateTime date, string version)
-				{
-						Name = name;
-						Score = score;
-						Date = date;
-						Version = version;
-				}
+		public LeaderboardScore (string name, int score, DateTime date, string version)
+		{
+			Name = name;
+			Score = score;
+			Date = date;
+			Version = version;
+		}
+	}
+
+
+	public class SceneManager// : UnityEngine.MonoBehaviour
+	{
+		public Shape currentShape;
+		public Shape previewShape;
+		private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
+		public int placedBlockCount = 0;
+		private ShapeFactory factory;
+		private bool isGamePaused = false;
+		public List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
+
+		public SceneManager ()
+		{
+			//grid = new int[10, 25];					
+			//listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("TestCD2")));
+			factory = new ShapeFactory ();
 		}
 
+		public void StartNewGame ()
+		{												
+			currentShape = factory.SpawnRandomizedTetrisShape ();
+			//currentShape.translate (0, -5, 0);
+			currentShape.enablePlayerControls ();
+			previewShape = factory.SpawnRandomizedTetrisShape2 ();
+			previewShape.disablePlayerControls ();
+			//previewShape.translate (0, 3, 0);
+		}
 
-		public class SceneManager// : UnityEngine.MonoBehaviour
+		public void PauseGame ()
 		{
-				public Shape currentShape;
-				public Shape previewShape;
-				private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
-				public int placedBlockCount = 0;
-				private ShapeFactory factory;
-				private bool isGamePaused = false;
-				public List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
-
-				public SceneManager ()
-				{
-						//grid = new int[10, 25];					
-						//listOfShapes.Add (new Shape (UnityEngine.GameObject.Find ("TestCD2")));
-						factory = new ShapeFactory ();
-				}
-
-				public void StartNewGame ()
-				{												
-						currentShape = factory.SpawnRandomizedTetrisShape ();
-						//currentShape.translate (0, -5, 0);
-						currentShape.enablePlayerControls ();
-						previewShape = factory.SpawnRandomizedTetrisShape2 ();
-						previewShape.disablePlayerControls ();
-						//previewShape.translate (0, 3, 0);
-				}
-
-				public void PauseGame ()
-				{
-						isGamePaused = true;
-						//LoadLeaderboardScores (); //tested, works
-						//UnityEngine.Debug.Log (highScores.Count);
+			isGamePaused = true;
+			//LoadLeaderboardScores (); //tested, works
+			//UnityEngine.Debug.Log (highScores.Count);
 						
-				}
+		}
 
-				public void ResumeGame ()
-				{
-						isGamePaused = false;
-				}
+		public void ResumeGame ()
+		{
+			isGamePaused = false;
+		}
 
-				public void EndGame ()
-				{
-						highScores.Add (new LeaderboardScore (System.Environment.MachineName, placedBlockCount, DateTime.Now, "1.0.0"));				                                 
-						string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
+		public void EndGame ()
+		{
+			highScores.Add (new LeaderboardScore (System.Environment.MachineName, placedBlockCount, DateTime.Now, "1.0.0"));				                                 
+			string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
 						
-						using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"Leaderboard.txt", true)) { 
-								file.WriteLine (json);
-						}
+			using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"Leaderboard.txt", true)) { 
+				file.WriteLine (json);
+			}
 							
-						foreach (Shape s in listOfShapes) {
-								s.DeleteShape ();
-						}
-						currentShape.DeleteShape ();
-						previewShape.DeleteShape ();
-						listOfShapes.Clear ();						
-						currentShape = null;
-						placedBlockCount = 0;
-				}
+			foreach (Shape s in listOfShapes) {
+				s.DeleteShape ();
+			}
+			currentShape.DeleteShape ();
+			previewShape.DeleteShape ();
+			listOfShapes.Clear ();						
+			currentShape = null;
+			placedBlockCount = 0;
+		}
 
-				public void LoadLeaderboardScores ()
-				{
-						string json;
-						using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
-								json = file.ReadToEnd ();
-						}
-						highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
+		public void LoadLeaderboardScores ()
+		{
+			string json;
+			using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
+				json = file.ReadToEnd ();
+			}
+			highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
 			
-				}
-		
-				public void Tick ()
-				{			
-						if (isGamePaused || currentShape == null)
-								return;
-						//currentShape.Tick();
-						//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
-						//bool collided = false;
-
-						if (AnyCollisions (0, -1)) {
-								currentShape.PlayCollisionAudio ();
-								++placedBlockCount;
-								listOfShapes.Add (currentShape); //might need to copy it explictly
-								currentShape.disablePlayerControls ();
-
-								//check to see if a row can be deleted
-								//I'm going to do it a horrible way first - check every row, see if any of them add up to 10 (my width) (if I find a row of 0, short-circuit)
-								//Once I find a row of 10, go back through and delete blocks that are in 10
-								//I'll need to figure out how to shift down, but I can do that later...
-
-								//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
-								Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-								foreach (Shape s in listOfShapes) {
-				
-										//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
-
-										foreach (int row in s.GetRowValuesOfSubBlocks()) {
-												if (rowCounts.ContainsKey (row))
-														rowCounts [row]++;
-												else
-														rowCounts.Add (row, 1);
-										}
-								}
-								foreach (int row in rowCounts.Keys) {
-										//UnityEngine.Debug.Log ("Row: " + row.ToString () + " Count: " + rowCounts [row].ToString ());
-										if (rowCounts [row] == 10) {
-												//row is full, delete any block in that row
-												foreach (Shape s in listOfShapes) {
-														s.DeleteBlocksInRow (row);
-														
-												}
-												List<Shape> shapesToRemove = new List<Shape> ();
-												foreach (Shape s3 in listOfShapes) {
-														if (s3.BlockCount () == 0) {
-																shapesToRemove.Add (s3);
-																
-														}
-												}
-												foreach (Shape s in shapesToRemove) {
-														listOfShapes.Remove (s);
-														UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
-														s.DeleteShape ();
-												}
-												List<Shape> debugList = new List<Shape> ();
-												foreach (Shape s2 in listOfShapes) {
-							
-														//if (s2.ContainsBlockAboveDeletedRow (row)) {
-														if (s2.ShiftBlocksAboveDeletedRow (row))
-																debugList.Add (s2);
-														//s2.translate (0, -1, 0);
-														//}
-												}
-												//TODO - after shifting, I should theoretically test for a complete row again...
-												foreach (Shape s in debugList) {
-														UnityEngine.Debug.Log (s.Name + " was shifted down");
-												}
-												string shapeList = "List of shapes(" + listOfShapes.Count + "): " + Environment.NewLine;
-												foreach (Shape s in listOfShapes) {
-														shapeList += s.Name + Environment.NewLine;
-												}
-												UnityEngine.Debug.Log (shapeList);
-										} else if (rowCounts [row] > 10) {
-												//throw assert or exception
-												UnityEngine.Debug.LogWarning ("ROW " + row + " HAS MORE THAN 10, WTF");
-
-										}
-								}
-																
-								currentShape = previewShape;
-								currentShape.translate (10, 0, 0);
-								currentShape.enablePlayerControls ();
-								previewShape = factory.SpawnRandomizedTetrisShape2 ();
-								//previewShape.translate (0, 5, 0);
-
-						} else {
-								currentShape.translate (0, -1, 0);
-						}
-				}
-
-				public bool AnyCollisions (float xDelta, float yDelta)
-				{
-						if (currentShape.isCollidingWithBotWall ())
-								return true;
-
-						foreach (Shape shape in listOfShapes) { //for each object in the scene that is colliable
-								if (currentShape.collides (shape, xDelta, yDelta))
-										return true;
-						}
-
-						return false;
-				}
 		}
+		
+		public void Tick ()
+		{			
+			if (isGamePaused || currentShape == null)
+				return;
+			//currentShape.Tick();
+			//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
+			//bool collided = false;
+
+			if (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithBotWall () || AnyCollisions (0, -1)) {
+				currentShape.PlayCollisionAudio ();
+				++placedBlockCount;
+				listOfShapes.Add (currentShape); //might need to copy it explictly
+				currentShape.disablePlayerControls ();
+
+				//check to see if a row can be deleted
+				//I'm going to do it a horrible way first - check every row, see if any of them add up to 10 (my width) (if I find a row of 0, short-circuit)
+				//Once I find a row of 10, go back through and delete blocks that are in 10
+				//I'll need to figure out how to shift down, but I can do that later...
+
+				//Destroy (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.compositeGameObject.transform.FindChild ("mid").gameObject);
+				Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
+				foreach (Shape s in listOfShapes) {
+				
+					//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
+
+					foreach (int row in s.GetRowValuesOfSubBlocks()) {
+						if (rowCounts.ContainsKey (row))
+							rowCounts [row]++;
+						else
+							rowCounts.Add (row, 1);
+					}
+				}
+				foreach (int row in rowCounts.Keys) {
+					//UnityEngine.Debug.Log ("Row: " + row.ToString () + " Count: " + rowCounts [row].ToString ());
+					if (rowCounts [row] == 10) {
+						//row is full, delete any block in that row
+						foreach (Shape s in listOfShapes) {
+							s.DeleteBlocksInRow (row);
+														
+						}
+						List<Shape> shapesToRemove = new List<Shape> ();
+						foreach (Shape s3 in listOfShapes) {
+							if (s3.BlockCount () == 0) {
+								shapesToRemove.Add (s3);
+																
+							}
+						}
+						foreach (Shape s in shapesToRemove) {
+							listOfShapes.Remove (s);
+							UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
+							s.DeleteShape ();
+						}
+						List<Shape> debugList = new List<Shape> ();
+						foreach (Shape s2 in listOfShapes) {
+							
+							//if (s2.ContainsBlockAboveDeletedRow (row)) {
+							if (s2.ShiftBlocksAboveDeletedRow (row))
+								debugList.Add (s2);
+							//s2.translate (0, -1, 0);
+							//}
+						}
+						//TODO - after shifting, I should theoretically test for a complete row again...
+						foreach (Shape s in debugList) {
+							UnityEngine.Debug.Log (s.Name + " was shifted down");
+						}
+						string shapeList = "List of shapes(" + listOfShapes.Count + "): " + Environment.NewLine;
+						foreach (Shape s in listOfShapes) {
+							shapeList += s.Name + Environment.NewLine;
+						}
+						UnityEngine.Debug.Log (shapeList);
+					} else if (rowCounts [row] > 10) {
+						//throw assert or exception
+						UnityEngine.Debug.LogWarning ("ROW " + row + " HAS MORE THAN 10, WTF");
+
+					}
+				}
+																
+				currentShape = previewShape;
+				currentShape.translate (10, 0, 0);
+				currentShape.enablePlayerControls ();
+				previewShape = factory.SpawnRandomizedTetrisShape2 ();
+				//previewShape.translate (0, 5, 0);
+
+			} else {
+				currentShape.translate (0, -1, 0);
+			}
+		}
+
+		public bool AnyCollisions (float xDelta, float yDelta)
+		{
+			foreach (Shape shape in listOfShapes) { //for each object in the scene that is colliable
+				if (currentShape.collides (shape, xDelta, yDelta))
+					return true;
+			}
+
+			return false;
+		}
+	}
 }
 
