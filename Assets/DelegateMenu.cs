@@ -93,4 +93,6 @@ public class DelegateMenu : MonoBehaviour
 		          "Placed blocks: " + AssemblyCSharp.NewBehaviourScript.sceneMgr.placedBlockCount);
 		}
 
+		//todo - create leaderboard GUI, load it from sceneMgr
+
 }

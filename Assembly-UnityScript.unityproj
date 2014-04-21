@@ -48,6 +48,10 @@
   <ItemGroup>
      <Compile Include="Assets\PlayerControl.js" />
      <Compile Include="Assets\Trigger2.js" />
+     <None Include="Assets\Script References\Newtonsoft.Json.xml" />
+ <Reference Include="Newtonsoft.Json">
+ <HintPath>Assets\Script References\Newtonsoft.Json.dll</HintPath>
+ </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

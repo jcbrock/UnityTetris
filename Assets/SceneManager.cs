@@ -10,8 +10,26 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 namespace AssemblyCSharp
 {
+		public class LeaderboardScore
+		{
+				public string Name { get; set; }
+				public int Score { get; set; }
+				public DateTime Date  { get; set; }
+				public string Version { get; set; }
+
+				public LeaderboardScore (string name, int score, DateTime date, string version)
+				{
+						Name = name;
+						Score = score;
+						Date = date;
+						Version = version;
+				}
+		}
+
+
 		public class SceneManager// : UnityEngine.MonoBehaviour
 		{
 				public Shape currentShape;
@@ -20,6 +38,7 @@ namespace AssemblyCSharp
 				public int placedBlockCount = 0;
 				private ShapeFactory factory;
 				private bool isGamePaused = false;
+				public List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
 
 				public SceneManager ()
 				{
@@ -41,6 +60,9 @@ namespace AssemblyCSharp
 				public void PauseGame ()
 				{
 						isGamePaused = true;
+						//LoadLeaderboardScores (); //tested, works
+						//UnityEngine.Debug.Log (highScores.Count);
+						
 				}
 
 				public void ResumeGame ()
@@ -50,7 +72,13 @@ namespace AssemblyCSharp
 
 				public void EndGame ()
 				{
-						//todo - write score somewhere for the leaderboard						
+						highScores.Add (new LeaderboardScore (System.Environment.MachineName, placedBlockCount, DateTime.Now, "1.0.0"));				                                 
+						string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
+						
+						using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"Leaderboard.txt", true)) { 
+								file.WriteLine (json);
+						}
+							
 						foreach (Shape s in listOfShapes) {
 								s.DeleteShape ();
 						}
@@ -61,6 +89,16 @@ namespace AssemblyCSharp
 						placedBlockCount = 0;
 				}
 
+				public void LoadLeaderboardScores ()
+				{
+						string json;
+						using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
+								json = file.ReadToEnd ();
+						}
+						highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
+			
+				}
+		
 				public void Tick ()
 				{			
 						if (isGamePaused || currentShape == null)
@@ -149,7 +187,6 @@ namespace AssemblyCSharp
 						}
 				}
 
-				//todo - cant just be on tick, gotta be on control movement too...
 				public bool AnyCollisions (float xDelta, float yDelta)
 				{
 						if (currentShape.isCollidingWithBotWall ())
