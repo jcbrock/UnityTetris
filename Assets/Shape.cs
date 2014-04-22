@@ -27,6 +27,7 @@ namespace AssemblyCSharp
 		private RotationStyles rStyle;
 		private bool flipRot = true;
 		public string Name; //for debugging
+		public int BlockCount = 4; //assuming 4 blocks per tetris block
 
 		//Hide default constructor
 		private Shape ()
@@ -53,8 +54,10 @@ namespace AssemblyCSharp
 		public void DeleteBlocksInRow (int row)
 		{
 			for (int i = 0; i < compositeGameObject.transform.childCount; ++i) {
-				if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) == row)
+				if (Convert.ToInt32 (Math.Floor (compositeGameObject.transform.GetChild (i).transform.position.y)) == row) {
 					UnityEngine.GameObject.Destroy (compositeGameObject.transform.GetChild (i).gameObject);
+					--BlockCount;
+				}
 			}						
 		}
 
@@ -81,10 +84,10 @@ namespace AssemblyCSharp
 			return false;
 		}
 
-		public int BlockCount ()
-		{
-			return compositeGameObject.transform.childCount;
-		}
+		//public int BlockCount ()
+		//{
+		//	return compositeGameObject.transform.childCount;
+		//}
 
 		public void Rotate90Degrees (bool clockwise)
 		{
