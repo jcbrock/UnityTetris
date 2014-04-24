@@ -1,0 +1,145 @@
+Initialize engine version: 4.3.4f1 (e444f76e01cd)
+GfxDevice: creating device client; threaded=1
+Direct3D:
+    Version:  Direct3D 9.0c [aticfx32.dll 8.17.10.1172]
+    Renderer: ATI Radeon HD 5800 Series
+    Vendor:   ATI
+    VRAM:     1014 MB (via DXGI)
+    Caps:     Shader=30 DepthRT=1 NativeDepth=1 NativeShadow=1 DF16=1 INTZ=1 RAWZ=0 NULL=1 RESZ=1 SlowINTZ=1
+Begin MonoManager ReloadAssembly
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\UnityEngine.dll (this message is harmless)
+Loading C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\UnityEngine.dll into Unity Child Domain
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\Assembly-CSharp.dll (this message is harmless)
+Loading C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\Assembly-CSharp.dll into Unity Child Domain
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\Assembly-UnityScript.dll (this message is harmless)
+Loading C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\Assembly-UnityScript.dll into Unity Child Domain
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\Newtonsoft.Json.dll (this message is harmless)
+Loading C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\Newtonsoft.Json.dll into Unity Child Domain
+- Completed reload, in  0.062 seconds
+desktop: 1920x1080 60Hz; virtual: 3200x1080 at -1280,0
+<RI> Initializing input.
+<RI> Input initialized.
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\System.Core.dll (this message is harmless)
+Start called!
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\System.dll (this message is harmless)
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\System.Xml.dll (this message is harmless)
+Platform assembly: C:\Users\Jeff\Documents\GitHub\New Unity Project\Builds\Tetris_Data\Managed\System.Data.dll (this message is harmless)
+Row -25 is full
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+Row -24 is full
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+Row -23 is full
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+Row -22 is full
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+List of shapes(15): 
+lShapeRight(Clone)0
+lShapeLeft(Clone)1
+lShapeLeft(Clone)2
+lShapeRight(Clone)3
+longShape(Clone)4
+lShapeLeft(Clone)5
+square(Clone)6
+longShape(Clone)7
+square(Clone)8
+tShape(Clone)9
+tShape(Clone)10
+zShapeRight(Clone)11
+zShapeRight(Clone)12
+lShapeLeft(Clone)13
+longShape(Clone)14
+
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+longShape(Clone)4 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+List of shapes(14): 
+lShapeRight(Clone)0
+lShapeLeft(Clone)1
+lShapeLeft(Clone)2
+lShapeRight(Clone)3
+lShapeLeft(Clone)5
+square(Clone)6
+longShape(Clone)7
+square(Clone)8
+tShape(Clone)9
+tShape(Clone)10
+zShapeRight(Clone)11
+zShapeRight(Clone)12
+lShapeLeft(Clone)13
+longShape(Clone)14
+
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+lShapeLeft(Clone)1 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+square(Clone)6 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+List of shapes(12): 
+lShapeRight(Clone)0
+lShapeLeft(Clone)2
+lShapeRight(Clone)3
+lShapeLeft(Clone)5
+longShape(Clone)7
+square(Clone)8
+tShape(Clone)9
+tShape(Clone)10
+zShapeRight(Clone)11
+zShapeRight(Clone)12
+lShapeLeft(Clone)13
+longShape(Clone)14
+
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+lShapeRight(Clone)0 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+lShapeLeft(Clone)2 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+lShapeRight(Clone)3 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+longShape(Clone)7 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+longShape(Clone)14 has been completely destroyed.
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
+List of shapes(7): 
+lShapeLeft(Clone)5
+square(Clone)8
+tShape(Clone)9
+tShape(Clone)10
+zShapeRight(Clone)11
+zShapeRight(Clone)12
+lShapeLeft(Clone)13
+
+ 
+(Filename: C:/BuildAgent/work/d3d49558e4d408f4/artifacts/StandalonePlayerGenerated/UnityEngineDebug.cpp Line: 53)
+
