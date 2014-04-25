@@ -14,240 +14,230 @@ using Newtonsoft.Json;
 using System.Linq;
 namespace AssemblyCSharp
 {
-		public class LeaderboardScore
-		{
-				public string Name { get; set; }
-				public int Score { get; set; }
-				public DateTime Date  { get; set; }
-				public string Version { get; set; }
+	public class LeaderboardScore
+	{
+		public string Name { get; set; }
+		public int Score { get; set; }
+		public DateTime Date  { get; set; }
+		public string Version { get; set; }
 
-				public LeaderboardScore (string name, int score, DateTime date, string version)
-				{
-						Name = name;
-						Score = score;
-						Date = date;
-						Version = version;
-				}
+		public LeaderboardScore (string name, int score, DateTime date, string version)
+		{
+			Name = name;
+			Score = score;
+			Date = date;
+			Version = version;
+		}
+	}
+
+	//also fix some using of member varibles as globals more like
+	public class SceneManager
+	{
+		//For these member variables surfaced outside of class, only expose as read-only
+		public Shape CurrentShape { get { return m_CurrentShape; } }
+		public List<LeaderboardScore> HighScores { get { return m_HighScores; } }
+		public int PlacedBlockCount { get { return m_PlacedBlockCount; } }
+		public bool IsGameOver { get { return m_IsGameOver; } }
+		
+		private ShapeFactory m_Factory;
+		private Shape m_CurrentShape;
+		private Shape previewShape;
+		private List<LeaderboardScore> m_HighScores = new List<LeaderboardScore> ();
+		private int m_PlacedBlockCount = 0;
+		private bool m_IsGamePaused = false;
+		private bool m_IsGameOver = false;
+		private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
+		private int m_RowWidth = 10; //must match the Unity grid
+
+		public SceneManager ()
+		{
+			m_Factory = new ShapeFactory ();
+			LoadLeaderboardScores ();
 		}
 
-
-		public class SceneManager
+		public void StartNewGame ()
+		{												
+			m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
+			m_CurrentShape.TranslateToInitialPlacement ();
+			m_CurrentShape.enablePlayerControls ();
+			previewShape = m_Factory.SpawnRandomizedTetrisShape ();
+			previewShape.disablePlayerControls ();
+			m_IsGamePaused = false;
+			m_IsGameOver = false;
+		}
+		public void PauseGame ()
 		{
-				public Shape currentShape;
-				public Shape previewShape;				
-				public int placedBlockCount = 0;
-				public List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
-				public bool IsGameOver { get { return isGameOver; } }
-				private ShapeFactory factory;
-				private bool isGamePaused = false;
-				private bool isGameOver = false;
-				private System.Collections.ArrayList listOfShapes = new System.Collections.ArrayList ();
-				
+			m_IsGamePaused = true;
+		}
+		public void ResumeGame ()
+		{
+			m_IsGamePaused = false;
+		}
+		public void EndGame ()
+		{
+			if (!m_IsGameOver) {
+				SaveLeaderboardScores ();
+				previewShape.DeleteShape ();				
+				m_IsGameOver = true;								
+			}
+		}
+		public void ClearGame ()
+		{
+			foreach (Shape s in m_ListOfShapes) {
+				s.DeleteShape ();
+			}
+			if (m_CurrentShape != null)
+				m_CurrentShape.DeleteShape ();
+			if (previewShape != null)
+				previewShape.DeleteShape ();
+			m_ListOfShapes.Clear ();						
+			m_CurrentShape = null;
+			m_PlacedBlockCount = 0;
+		}
 
-				public SceneManager ()
-				{
-						factory = new ShapeFactory ();
+		private void SaveLeaderboardScores ()
+		{
+			List<LeaderboardScore> highScores = LoadLeaderboardScores ();
+			try {
+				highScores.Add (new LeaderboardScore (System.Environment.MachineName, m_PlacedBlockCount, DateTime.Now, "1.0.0"));
+				m_HighScores = highScores; //update public exposed leaderboard for GUI
+				string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
+				System.IO.File.WriteAllText (@"Leaderboard.txt", json);
+			} catch (Exception ex) {
+				UnityEngine.Debug.LogWarning ("Error writing leaderboard scores: " + ex.Message);
+			}
+		}
+		public List<LeaderboardScore> LoadLeaderboardScores () //todo - make private, fix issue where leaderboard doesn't update right after a game for some reason...
+		{
+			List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
+			try {
+				string json;
+				using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
+					json = file.ReadToEnd ();
 				}
+				highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
+				highScores = highScores.OrderByDescending (x => x.Score).ToList ();
+				m_HighScores = highScores; //update public exposed leaderboard for GUI
+			} catch (Exception ex) {
+				UnityEngine.Debug.LogWarning ("Error loading leaderboard scores: " + ex.Message);
+			}
+			return highScores;
+		}
 
-				public void StartNewGame ()
-				{												
-						currentShape = factory.SpawnRandomizedTetrisShape ();
-						currentShape.TranslateToInitialPlacement ();
-						currentShape.enablePlayerControls ();
-						previewShape = factory.SpawnRandomizedTetrisShape ();
-						previewShape.disablePlayerControls ();
-						isGamePaused = false;
-						isGameOver = false;
-				}
-
-				public void PauseGame ()
-				{
-						isGamePaused = true;
-						//LoadLeaderboardScores (); //tested, works
-						//UnityEngine.Debug.Log (highScores.Count);
-						
-				}
-
-				public void ResumeGame ()
-				{
-						isGamePaused = false;
-				}
-
-				public void EndGame ()
-				{
-						if (!isGameOver) {
-								LoadLeaderboardScores ();
-								try {
-										highScores.Add (new LeaderboardScore (System.Environment.MachineName, placedBlockCount, DateTime.Now, "1.0.0"));				                                 
-										string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
-										System.IO.File.WriteAllText (@"Leaderboard.txt", json);												
-								} catch (Exception ex) {
-								}
-								previewShape.DeleteShape ();				
-								isGameOver = true;								
-						}
-
-				}
-
-				public void ClearGame ()
-				{
-						foreach (Shape s in listOfShapes) {
-								s.DeleteShape ();
-						}
-						if (currentShape != null)
-								currentShape.DeleteShape ();
-						if (previewShape != null)
-								previewShape.DeleteShape ();
-						listOfShapes.Clear ();						
-						currentShape = null;
-						placedBlockCount = 0;
-				}
+		public bool DoAnyShapesCollideInScene (UnityEngine.Vector3 movementVector)
+		{
+			foreach (Shape shape in m_ListOfShapes) { //for each object in the scene that is colliable
+				if (m_CurrentShape.collides (shape, movementVector))
+					return true;
+			}
+			return false;
+		}
 		
-				public void LoadLeaderboardScores ()
-				{
-						try {
-								string json;
-								using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
-										json = file.ReadToEnd ();
-								}
-								highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
-								highScores = highScores.OrderByDescending (x => x.Score).ToList ();
-						} catch (Exception ex) {
+		public void Tick ()
+		{			
+			if (m_IsGamePaused || m_IsGameOver || m_CurrentShape == null)
+				return;
+			//currentShape.Tick();
+			UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1.0f, 0);
+			if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
+				m_CurrentShape.PlayCollisionAudio ();
+				++m_PlacedBlockCount;
+				m_ListOfShapes.Add (m_CurrentShape);
 
-						}
-			
+				//Handle game end condition
+				if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
+					UnityEngine.GameObject.Find ("background").audio.Play ();
+					EndGame ();
+					return;
 				}
-		
-				public void Tick ()
-				{			
-						if (isGamePaused || isGameOver || currentShape == null)
-								return;
-						//currentShape.Tick();
-						//UnityEngine.Debug.Log (currentBlock.gameObject.transform.position);
-						//bool collided = false;
 
-						if (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithBotWall (0, -1.0f) || AnyCollisions (0, -1)) {
-								currentShape.PlayCollisionAudio ();
-								++placedBlockCount;
-								if (AssemblyCSharp.NewBehaviourScript.sceneMgr.currentShape.isCollidingWithTopWall (0, 0)) {
-										UnityEngine.Debug.Log ("END OF GAME!!!");
-										UnityEngine.GameObject.Find ("background").audio.Play ();
-										EndGame ();
-										return;
-								}
+				//My approach to deleting rows: detect full rows, delete (and shift shapes down) top to bottom
+				//Note: Actual object destruction is always delayed until after the current Update loop, but will always be done before rendering.
+				//https://docs.unity3d.com/Documentation/ScriptReference/Object.Destroy.html
 
-								listOfShapes.Add (currentShape); //might need to copy it explictly
-								currentShape.disablePlayerControls ();
-
-								Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-								foreach (Shape s in listOfShapes) {
-										foreach (int row in s.GetRowValuesOfSubBlocks()) {
-												if (rowCounts.ContainsKey (row))
-														rowCounts [row]++;
-												else
-														rowCounts.Add (row, 1);
-										}
-								}
-
-								//I think the better approach before I delete anything is to do a pass to tell which rows to be deleted.
-								//I don't think it is possible for rows to become completed after shifting... they merely shift down.
-								//So I don't think I need to do any more checks, I can just delete the rows top to bottom and be fine.
-								List<int> fullRows = new List<int> ();
-								foreach (int row in rowCounts.Keys) {
-										if (IsRowComplete (rowCounts [row])) {
-												fullRows.Add (row);
-												UnityEngine.Debug.Log ("Row " + row + " is full");
-										}
-								}
-								fullRows = fullRows.OrderByDescending (i => i).ToList ();			
-								foreach (int row in fullRows) {
-										DeleteRow (row);
-								}
-
-								//why do the shapes not get deleted until later???
-								//Actual object destruction is always delayed until after the current Update loop, but will always be done before rendering.
-								//https://docs.unity3d.com/Documentation/ScriptReference/Object.Destroy.html	
-																
-								currentShape = previewShape;								
-								currentShape.enablePlayerControls ();
-								currentShape.TranslateToInitialPlacement ();
-								previewShape = factory.SpawnRandomizedTetrisShape ();
-						} else {
-								currentShape.translate (0, -1, 0);
-						}
-				}
-						
-				private bool IsRowComplete (int rowCount)
-				{
-						if (rowCount == 10)
-								return true;
+				//Add up number of blocks in each row
+				Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
+				foreach (Shape s in m_ListOfShapes) {
+					foreach (int row in s.GetRowValuesOfSubBlocks()) {
+						if (rowCounts.ContainsKey (row))
+							rowCounts [row]++;
 						else
-								return false;
+							rowCounts.Add (row, 1);
+					}
+				}
+				//Make sure it is ordered top to bottom
+				rowCounts = rowCounts.OrderByDescending (x => x.Key).ToDictionary (x => x.Key, x => x.Value);
+
+				//Detect full rows and delete/shift
+				foreach (int row in rowCounts.Keys) {
+					if (rowCounts [row] == m_RowWidth) {
+						UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now...");
+						DeleteRow (row);
+					} else {
+						UnityEngine.Debug.LogWarning ("Row contains over " + m_RowWidth + " blocks");
+					}
 				}
 
-				private void DeleteRow (int row)
-				{
-
-						foreach (Shape s in listOfShapes) {								
-								s.DeleteBlocksInRow (row);								
-						}
-
-						List<Shape> shapesToRemove = new List<Shape> ();
-						foreach (Shape s3 in listOfShapes) {
-								if (s3.BlockCount == 0) {
-										shapesToRemove.Add (s3);
-					
-								}
-						}
-						foreach (Shape s in shapesToRemove) {
-								listOfShapes.Remove (s);
-								UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
-								s.DeleteShape ();
-						}
-									
-						foreach (Shape s2 in listOfShapes) {										
-								s2.ShiftBlocksAboveDeletedRow (row);										
-						}
-						
-						//Debug printing...
-						string shapeList = "List of shapes(" + listOfShapes.Count + "): " + Environment.NewLine;
-						foreach (Shape s in listOfShapes) {
-								shapeList += s.Name + Environment.NewLine;
-						}
-						UnityEngine.Debug.Log (shapeList);
-				}
-
-				//Debug helper function
-				public int GetRowCount (int row)
-				{
-						Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-						foreach (Shape s in listOfShapes) {
-				
-								//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
-				
-								foreach (int rownum in s.GetRowValuesOfSubBlocks()) {
-										if (rowCounts.ContainsKey (rownum))
-												rowCounts [rownum]++;
-										else
-												rowCounts.Add (rownum, 1);
-								}
-						}
-
-						if (!rowCounts.ContainsKey (row))
-								return -1;
-
-						return rowCounts [row];
-				}
-
-				public bool AnyCollisions (float xDelta, float yDelta)
-				{
-						foreach (Shape shape in listOfShapes) { //for each object in the scene that is colliable
-								if (currentShape.collides (shape, xDelta, yDelta))
-										return true;
-						}
-
-						return false;
-				}
+				//Switch to previewed Shape and generate a new one
+				m_CurrentShape.disablePlayerControls ();
+				m_CurrentShape = previewShape;								
+				m_CurrentShape.enablePlayerControls ();
+				m_CurrentShape.TranslateToInitialPlacement ();
+				previewShape = m_Factory.SpawnRandomizedTetrisShape ();
+			} else {
+				m_CurrentShape.translate (movementVector);
+			}
 		}
+
+		private void DeleteRow (int row)
+		{
+			List<Shape> shapesToRemove = new List<Shape> ();
+			foreach (Shape s in m_ListOfShapes) {								
+				if (s.DeleteBlocksInRow (row) == 0) {
+					shapesToRemove.Add (s); //can't modify list while I'm iterating through it, mark for delete
+				}
+			}
+
+			foreach (Shape s in shapesToRemove) {
+				UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
+				m_ListOfShapes.Remove (s);
+				s.DeleteShape ();
+			}
+									
+			foreach (Shape s2 in m_ListOfShapes) {										
+				s2.ShiftBlocksAboveDeletedRow (row);										
+			}
+						
+			//Debug printing...
+			string shapeList = "List of shapes(" + m_ListOfShapes.Count + "): " + Environment.NewLine;
+			foreach (Shape s in m_ListOfShapes) {
+				shapeList += s.Name + Environment.NewLine;
+			}
+			UnityEngine.Debug.Log (shapeList);
+		}
+
+
+		//Debug helper function
+		public int GetRowCount (int row)
+		{
+			Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
+			foreach (Shape s in m_ListOfShapes) {
+				
+				//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
+				
+				foreach (int rownum in s.GetRowValuesOfSubBlocks()) {
+					if (rowCounts.ContainsKey (rownum))
+						rowCounts [rownum]++;
+					else
+						rowCounts.Add (rownum, 1);
+				}
+			}
+			
+			if (!rowCounts.ContainsKey (row))
+				return -1;
+			
+			return rowCounts [row];
+		}
+	}
 }
 
