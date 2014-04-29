@@ -230,56 +230,116 @@ namespace AssemblyCSharp
 			bits.CopyTo (ints, 0);
 			return ints;
 		}
+		byte[] ConvertToBytes (BitArray bits)
+		{
+			if (bits.Count != 192) {
+				throw new ArgumentException ("bits");
+			}
+			byte[] bytes = new byte[24];
+			bits.CopyTo (bytes, 0);
+			return bytes;
+		}
+		BitArray ConvertToBitArray (byte[] bytes)
+		{
+			return new BitArray (bytes);
+		}
 
 
 		public void DeleteRowMyB (int row)
 		{
-
+			row = Math.Abs (row);
+/*
 			UInt16 ii = UInt16.MaxValue;
 			UInt16 k = UInt16.MinValue;
 			var j = ii | k;
 			var jj = ii & k;
 			var jjj = ii | k;
+*/
 
+			//TODO - clean up all extra bit arrays and crap.
 
-			MyBitArray fullRowMask = new MyBitArray (height, m_RowWidth);
-			fullRowMask.m_data.SetAll (true);
-			for (int i = 0; i < m_RowWidth; ++i) {
-				fullRowMask [row, i] = false;
-			}
-			
-			BitArray foobar = (BitArray)myB.m_data.Clone ();
-			MyBitArray newArray = new MyBitArray (height, m_RowWidth); 
-			newArray.m_data = foobar.And (fullRowMask.m_data); //damnit... And modifies the left hand side.
-
-			//row should be cleared now
-
-			MyBitArray topRowsMask = new MyBitArray (height, m_RowWidth);
-			newArray.m_data >> 8;
-			//for everything above, shift down
-			for (int i = 0; i > row; --i) {
-				topRowsMask [row, i] = true;
+			//row 0 = top row
+			//row 23 = bot row
+			BitArray x = (BitArray)myB.m_data.Clone ();
+			BitArray yBot = new BitArray (m_RowWidth * height);
+			for (int i = ((row + 1) * m_RowWidth); i < (height * m_RowWidth); ++i) { //yBot = everything below full row, hence -1
+				yBot [i] = true; //-192 > -192
+				//-184 > -192, -185 > -192, -186 > 192
 			}
 
+			//Debug - print stuff
+			MyBitArray p2 = new MyBitArray (height, m_RowWidth);
+			p2.m_data = yBot;
+			++foo;
+			UnityEngine.Debug.Log ("yBot" + foo);
+			PrintBitArray (p2);
 
-
-			/*foo++;
-			UnityEngine.Debug.Log ("Anded Array:" + foo);
-			PrintBitArray (newArray);
-			UnityEngine.Debug.Log ("Mask Array:" + foo);
-			PrintBitArray (fullRowMask);*/
-			int[] b1 = ConvertToInts (fullRowMask.m_data);
-			int[] b2 = ConvertToInts (newArray.m_data);
-
-
-			//TODO - this should be done by masks...
-
-			for (int i = 0; i < m_RowWidth; ++i) {
-				myB [row, i] = false;
+			//shift - CAN'T do via mask because I don't have one consecutive array of bits in C#.
+			//They are split up across ints, which makes shifting a bitch - I still have to copy between ints
+			//(last part of int to first part of next int...), so it is easier just to use byte array.
+			++foo;
+			UnityEngine.Debug.Log ("Before shift" + foo);
+			PrintBitArray (myB);
+			byte[] bytes = ConvertToBytes (myB.m_data); //TODO - rather than doing converstion here, just keep track of byte array on MyBitArray
+			//ShiftRight (bytes);
+			for (int i = height -1; i > 0; --i) {
+				bytes [i] = bytes [i - 1];
 			}
-			//shift down
+			bytes [0] = 0;
+			myB.m_data = ConvertToBitArray (bytes);
+			++foo;
+			UnityEngine.Debug.Log ("After shift" + foo);
+			PrintBitArray (myB);
 
+			BitArray yTop = new BitArray (m_RowWidth * height);
+			for (int i = (((row +1) * m_RowWidth)-1); i >= 0; --i) { //includes the full row, hence the -1 (+1 is for 0-191, not 1-192)
+				yTop [i] = true;
+			}
+
+			//Debug - print
+			MyBitArray p = new MyBitArray (height, m_RowWidth);
+			p.m_data = yTop;
+			++foo;
+			UnityEngine.Debug.Log ("yTop" + foo);
+			PrintBitArray (p);
+
+			++foo;
+			UnityEngine.Debug.Log ("Answer" + foo);
+			MyBitArray ans = new MyBitArray (height, m_RowWidth);
+			ans.m_data = (x.And (yBot)).Or (myB.m_data.And (yTop)); //Take bottom or original grid, add it to the top of the shifted down grid
+			PrintBitArray (ans);
+			myB.m_data = ans.m_data;
 		}
+
+
+		/// <summary>
+		/// Shifts the bits in an array of bytes to the right.
+		/// </summary>
+		/// <param name="bytes">The byte array to shift.</param>
+		public static bool ShiftRight (byte[] bytes)
+		{
+			bool rightMostCarryFlag = false;
+			int rightEnd = bytes.Length - 1;
+				
+			// Iterate through the elements of the array right to left.
+			for (int index = rightEnd; index >= 0; index--) {
+				// If the rightmost bit of the current byte is 1 then we have a carry.
+				bool carryFlag = (bytes [index] & 0x01) > 0;
+					
+				if (index < rightEnd) {
+					if (carryFlag == true) {
+						// Apply the carry to the leftmost bit of the current bytes neighbor to the right.
+						bytes [index + 1] = (byte)(bytes [index + 1] | 0x80);
+					}
+				} else {
+					rightMostCarryFlag = carryFlag;
+				}
+					
+				bytes [index] = (byte)(bytes [index] >> 1);
+			}
+				
+			return rightMostCarryFlag;
+		} 
 
 		public void StartNewGame ()
 		{			
@@ -420,7 +480,7 @@ namespace AssemblyCSharp
 				m_CurrentShape.enablePlayerControls ();
 				m_CurrentShape.TranslateToInitialPlacement ();
 				previewShape = m_Factory.SpawnRandomizedTetrisShape ();
-				PrintBitArray ();
+				//PrintBitArray ();
 
 			} else {
 				UpdateBitArray (false);
