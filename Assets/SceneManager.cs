@@ -14,240 +14,240 @@ using Newtonsoft.Json;
 using System.Linq;
 namespace AssemblyCSharp
 {
-	public class LeaderboardScore
-	{
-		public string Name { get; set; }
-		public int Score { get; set; }
-		public DateTime Date  { get; set; }
-		public string Version { get; set; }
-
-		public LeaderboardScore (string name, int score, DateTime date, string version)
+		public class LeaderboardScore
 		{
-			Name = name;
-			Score = score;
-			Date = date;
-			Version = version;
-		}
-	}
+				public string Name { get; set; }
+				public int Score { get; set; }
+				public DateTime Date  { get; set; }
+				public string Version { get; set; }
 
-	public class MyBitArray
-	{
-		public BitArray m_data;
-		private int m_RowCount;
-		private int m_ColumnCount;
-		private byte[] m_bArray;
-		private MyBitArray ()
+				public LeaderboardScore (string name, int score, DateTime date, string version)
+				{
+						Name = name;
+						Score = score;
+						Date = date;
+						Version = version;
+				}
+		}
+
+		public class MyBitArray
 		{
+				public BitArray m_data;
+				private int m_RowCount;
+				private int m_ColumnCount;
+				private byte[] m_bArray;
+				private MyBitArray ()
+				{
+				}
+				public MyBitArray (int rowCount, int columnCount)
+				{
+						m_data = new BitArray (rowCount * columnCount);
+						m_RowCount = rowCount;
+						m_ColumnCount = columnCount;
+						m_bArray = new byte[rowCount];//assuming 1 row = 8 bytes
+				}
+
+				public bool this [int rowIndex, int columnIndex] {
+						get {
+								rowIndex = Math.Abs (rowIndex);
+								if (rowIndex < 0 || rowIndex >= m_RowCount)
+										throw new ArgumentOutOfRangeException ("rowIndex");
+				
+								if (columnIndex < 0 || columnIndex >= m_ColumnCount)
+										throw new ArgumentOutOfRangeException ("columnIndex");
+				
+								int pos = rowIndex * m_ColumnCount + columnIndex;
+								//int index = pos % 8;
+								//pos >>= 3;
+								//return (m_Data [pos] & (1 << index)) != 0;
+								return m_data [pos];
+						}
+						set {
+								rowIndex = Math.Abs (rowIndex);
+								if (rowIndex < 0 || rowIndex >= m_RowCount)
+										throw new ArgumentOutOfRangeException ("rowIndex");
+				
+								if (columnIndex < 0 || columnIndex >= m_ColumnCount)
+										throw new ArgumentOutOfRangeException ("columnIndex");
+				
+								int pos = rowIndex * m_ColumnCount + columnIndex;
+
+								//row = which byte
+								//column = which bit
+								//if (value)
+								//	m_bArray[rowIndex] += ; //bit 0-255.
+								//else
+								//	m_bArray[rowIndex] += ; //bit 0-255.
+
+
+
+								//int index = pos % 8;
+								//pos >>= 3;
+								//m_Data [pos] &= (byte)(~(1 << index));
+				
+								//if (value) {
+								//			m_Data [pos] |= (byte)(1 << index);
+								//	}
+								m_data [pos] = value;
+						}
+				}
+
+
+				//ok, here is the plan.
+				//all my masking is done via byte masks
+				//I'll still shift moving object down via looping over bit array, but other than that, use byte masks
+				//this means I'll be operating in terms of rows for those mask operations... 1byte = 1row
+
+				//hmm, that means I need to convert bitarray row to a byte, which is easy if I can get the row. Then again, I gotta reverse it...
+				//or ... not really, because if i keep it in terms of what the bit array thinks, that should be fine. I'd have to reverse it if I
+				//was translating it to the UI, but that isn't the case.
+
+				public static MyBitArray operator & (MyBitArray lh, MyBitArray rh)
+				{
+						MyBitArray newArray = new MyBitArray (lh.m_RowCount, lh.m_ColumnCount);
+						//var foop = lh.m_data.m_array[index];
+						for (int i = 0; i < lh.m_RowCount; ++i) {
+
+								//int left = lh.m_data [i];
+								//int right = rh.m_data [i];
+								//newArray.m_data [i] = left & right;
+						}
+						return newArray;
+				}
 		}
-		public MyBitArray (int rowCount, int columnCount)
+
+		//also fix some using of member varibles as globals more like
+		public class SceneManager
 		{
-			m_data = new BitArray (rowCount * columnCount);
-			m_RowCount = rowCount;
-			m_ColumnCount = columnCount;
-			m_bArray = new byte[rowCount];//assuming 1 row = 8 bytes
-		}
-
-		public bool this [int rowIndex, int columnIndex] {
-			get {
-				rowIndex = Math.Abs (rowIndex);
-				if (rowIndex < 0 || rowIndex >= m_RowCount)
-					throw new ArgumentOutOfRangeException ("rowIndex");
-				
-				if (columnIndex < 0 || columnIndex >= m_ColumnCount)
-					throw new ArgumentOutOfRangeException ("columnIndex");
-				
-				int pos = rowIndex * m_ColumnCount + columnIndex;
-				//int index = pos % 8;
-				//pos >>= 3;
-				//return (m_Data [pos] & (1 << index)) != 0;
-				return m_data [pos];
-			}
-			set {
-				rowIndex = Math.Abs (rowIndex);
-				if (rowIndex < 0 || rowIndex >= m_RowCount)
-					throw new ArgumentOutOfRangeException ("rowIndex");
-				
-				if (columnIndex < 0 || columnIndex >= m_ColumnCount)
-					throw new ArgumentOutOfRangeException ("columnIndex");
-				
-				int pos = rowIndex * m_ColumnCount + columnIndex;
-
-				//row = which byte
-				//column = which bit
-				//if (value)
-				//	m_bArray[rowIndex] += ; //bit 0-255.
-				//else
-				//	m_bArray[rowIndex] += ; //bit 0-255.
-
-
-
-				//int index = pos % 8;
-				//pos >>= 3;
-				//m_Data [pos] &= (byte)(~(1 << index));
-				
-				//if (value) {
-				//			m_Data [pos] |= (byte)(1 << index);
-				//	}
-				m_data [pos] = value;
-			}
-		}
-
-
-		//ok, here is the plan.
-		//all my masking is done via byte masks
-		//I'll still shift moving object down via looping over bit array, but other than that, use byte masks
-		//this means I'll be operating in terms of rows for those mask operations... 1byte = 1row
-
-		//hmm, that means I need to convert bitarray row to a byte, which is easy if I can get the row. Then again, I gotta reverse it...
-		//or ... not really, because if i keep it in terms of what the bit array thinks, that should be fine. I'd have to reverse it if I
-		//was translating it to the UI, but that isn't the case.
-
-		public static MyBitArray operator & (MyBitArray lh, MyBitArray rh)
-		{
-			MyBitArray newArray = new MyBitArray (lh.m_RowCount, lh.m_ColumnCount);
-			//var foop = lh.m_data.m_array[index];
-			for (int i = 0; i < lh.m_RowCount; ++i) {
-
-				//int left = lh.m_data [i];
-				//int right = rh.m_data [i];
-				//newArray.m_data [i] = left & right;
-			}
-			return newArray;
-		}
-	}
-
-	//also fix some using of member varibles as globals more like
-	public class SceneManager
-	{
-		//For these member variables surfaced outside of class, only expose as read-only
-		public Shape CurrentShape { get { return m_CurrentShape; } }
-		public List<LeaderboardScore> HighScores { get { return m_HighScores; } }
-		public int PlacedBlockCount { get { return m_PlacedBlockCount; } }
-		public bool IsGameOver { get { return m_IsGameOver; } }
+				//For these member variables surfaced outside of class, only expose as read-only
+				public Shape CurrentShape { get { return m_CurrentShape; } }
+				public List<LeaderboardScore> HighScores { get { return m_HighScores; } }
+				public int PlacedBlockCount { get { return m_PlacedBlockCount; } }
+				public bool IsGameOver { get { return m_IsGameOver; } }
 		
-		private ShapeFactory m_Factory;
-		private Shape m_CurrentShape;
-		private Shape previewShape;
-		private List<LeaderboardScore> m_HighScores = new List<LeaderboardScore> ();
-		private int m_PlacedBlockCount = 0;
-		private bool m_IsGamePaused = false;
-		private bool m_IsGameOver = false;
-		private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
-		private int m_RowWidth = 8; //must match the Unity grid
-		private BitArray m_bitArray = new BitArray (250);
-		private static int width = 8;
-		private static int height = 24;
-		private MyBitArray myB = new MyBitArray (height, width);
+				private ShapeFactory m_Factory;
+				private Shape m_CurrentShape;
+				private Shape previewShape;
+				private List<LeaderboardScore> m_HighScores = new List<LeaderboardScore> ();
+				private int m_PlacedBlockCount = 0;
+				private bool m_IsGamePaused = false;
+				private bool m_IsGameOver = false;
+				private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
+				private int m_RowWidth = 8; //must match the Unity grid
+				private BitArray m_bitArray = new BitArray (250);
+				private static int width = 8;
+				private static int height = 24;
+				private MyBitArray myB = new MyBitArray (height, width);
 
-		public SceneManager ()
-		{
-			m_Factory = new ShapeFactory ();
-			LoadLeaderboardScores ();
+				public SceneManager ()
+				{
+						m_Factory = new ShapeFactory ();
+						LoadLeaderboardScores ();
 						
-			for (int i = 0; i < 250; ++i)
+						for (int i = 0; i < 250; ++i)
 								//for (int j = 0; j < 10; ++j)
-				m_bitArray [i] = true;
+								m_bitArray [i] = true;
 
-			string foo = string.Empty;
-			for (int i = 0; i < 250; ++i)
-				foo += m_bitArray [i] + " ";
+						string foo = string.Empty;
+						for (int i = 0; i < 250; ++i)
+								foo += m_bitArray [i] + " ";
 
-			foo += " end";
+						foo += " end";
 
 						
-			//for (int i = 0; i < 25; ++i)
-			//		for (int j = 0; j < 10; ++j)
-			//				myB [i, j] = true;
-			PrintBitArray ();
-		}
+						//for (int i = 0; i < 25; ++i)
+						//		for (int j = 0; j < 10; ++j)
+						//				myB [i, j] = true;
+						PrintBitArray ();
+				}
 
-		public void PrintBitArray ()
-		{
-			string foo2 = string.Empty;
+				public void PrintBitArray ()
+				{
+						string foo2 = string.Empty;
 			
-			for (int i = 0; i < height; ++i) {
-				string space = " ";
-				if (i < 10)
-					space = "  ";
+						for (int i = 0; i < height; ++i) {
+								string space = " ";
+								if (i < 10)
+										space = "  ";
 
-				foo2 += Environment.NewLine + "Row " + i + space;
-				for (int j = 0; j < width; ++j) {
-					foo2 += Convert.ToInt32 (myB [i, j]) + " ";								
-				}								
-			}
-			UnityEngine.Debug.Log (foo2);
-		}
+								foo2 += Environment.NewLine + "Row " + i + space;
+								for (int j = 0; j < width; ++j) {
+										foo2 += Convert.ToInt32 (myB [i, j]) + " ";								
+								}								
+						}
+						UnityEngine.Debug.Log (foo2);
+				}
 
-		public void PrintBitArray (MyBitArray ba)
-		{
-			string foo2 = string.Empty;
+				public void PrintBitArray (MyBitArray ba)
+				{
+						string foo2 = string.Empty;
 			
-			for (int i = 0; i < height; ++i) {
-				string space = " ";
-				if (i < 10)
-					space = "  ";
+						for (int i = 0; i < height; ++i) {
+								string space = " ";
+								if (i < 10)
+										space = "  ";
 				
-				foo2 += Environment.NewLine + "Row " + i + space;
-				for (int j = 0; j < width; ++j) {
-					foo2 += Convert.ToInt32 (ba [i, j]) + " ";								
-				}								
-			}
-			UnityEngine.Debug.Log (foo2);
-		}
+								foo2 += Environment.NewLine + "Row " + i + space;
+								for (int j = 0; j < width; ++j) {
+										foo2 += Convert.ToInt32 (ba [i, j]) + " ";								
+								}								
+						}
+						UnityEngine.Debug.Log (foo2);
+				}
 
-		//ew, how do I bitmask a row of 10? does that matteR?
-		//jank as fuck
-		private bool CheckForFullRow (int row)
-		{
-			MyBitArray fullRowMask = new MyBitArray (height, m_RowWidth);
-			for (int i = 0; i < m_RowWidth; ++i) {
-				fullRowMask [row, i] = true;
-			}
+				//ew, how do I bitmask a row of 10? does that matteR?
+				//jank as fuck
+				private bool CheckForFullRow (int row)
+				{
+						MyBitArray fullRowMask = new MyBitArray (height, m_RowWidth);
+						for (int i = 0; i < m_RowWidth; ++i) {
+								fullRowMask [row, i] = true;
+						}
 
-			BitArray foobar = (BitArray)myB.m_data.Clone ();
-			MyBitArray newArray = new MyBitArray (height, m_RowWidth); 
-			newArray.m_data = foobar.And (fullRowMask.m_data); //damnit... And modifies the left hand side.
-			/*foo++;
+						BitArray foobar = (BitArray)myB.m_data.Clone ();
+						MyBitArray newArray = new MyBitArray (height, m_RowWidth); 
+						newArray.m_data = foobar.And (fullRowMask.m_data); //damnit... And modifies the left hand side.
+						/*foo++;
 			UnityEngine.Debug.Log ("Anded Array:" + foo);
 			PrintBitArray (newArray);
 			UnityEngine.Debug.Log ("Mask Array:" + foo);
 			PrintBitArray (fullRowMask);*/
-			int[] b1 = ConvertToInts (fullRowMask.m_data);
-			int[] b2 = ConvertToInts (newArray.m_data);
-			for (int i = 0; i < 6; ++i)
-				if (b1 [i] != b2 [i])
-					return false;
+						int[] b1 = ConvertToInts (fullRowMask.m_data);
+						int[] b2 = ConvertToInts (newArray.m_data);
+						for (int i = 0; i < 6; ++i)
+								if (b1 [i] != b2 [i])
+										return false;
 
-			return true;
-		}
+						return true;
+				}
 
-		int[] ConvertToInts (BitArray bits)
-		{
-			if (bits.Count != 192) {
-				throw new ArgumentException ("bits");
-			}
-			int[] ints = new int[6];
-			bits.CopyTo (ints, 0);
-			return ints;
-		}
-		byte[] ConvertToBytes (BitArray bits)
-		{
-			if (bits.Count != 192) {
-				throw new ArgumentException ("bits");
-			}
-			byte[] bytes = new byte[24];
-			bits.CopyTo (bytes, 0);
-			return bytes;
-		}
-		BitArray ConvertToBitArray (byte[] bytes)
-		{
-			return new BitArray (bytes);
-		}
+				int[] ConvertToInts (BitArray bits)
+				{
+						if (bits.Count != 192) {
+								throw new ArgumentException ("bits");
+						}
+						int[] ints = new int[6];
+						bits.CopyTo (ints, 0);
+						return ints;
+				}
+				byte[] ConvertToBytes (BitArray bits)
+				{
+						if (bits.Count != 192) {
+								throw new ArgumentException ("bits");
+						}
+						byte[] bytes = new byte[24];
+						bits.CopyTo (bytes, 0);
+						return bytes;
+				}
+				BitArray ConvertToBitArray (byte[] bytes)
+				{
+						return new BitArray (bytes);
+				}
 
 
-		public void DeleteRowMyB (int row)
-		{
-			row = Math.Abs (row);
+				public void DeleteRowMyB (int row)
+				{
+						row = Math.Abs (row);
 /*
 			UInt16 ii = UInt16.MaxValue;
 			UInt16 k = UInt16.MinValue;
@@ -256,304 +256,362 @@ namespace AssemblyCSharp
 			var jjj = ii | k;
 */
 
-			//TODO - clean up all extra bit arrays and crap.
+						//TODO - clean up all extra bit arrays and crap.
 
-			//row 0 = top row
-			//row 23 = bot row
-			BitArray x = (BitArray)myB.m_data.Clone ();
-			BitArray yBot = new BitArray (m_RowWidth * height);
-			for (int i = ((row + 1) * m_RowWidth); i < (height * m_RowWidth); ++i) { //yBot = everything below full row, hence -1
-				yBot [i] = true; //-192 > -192
-				//-184 > -192, -185 > -192, -186 > 192
-			}
+						//row 0 = top row
+						//row 23 = bot row
+						BitArray x = (BitArray)myB.m_data.Clone ();
+						BitArray yBot = new BitArray (m_RowWidth * height);
+						for (int i = ((row + 1) * m_RowWidth); i < (height * m_RowWidth); ++i) { //yBot = everything below full row, hence -1
+								yBot [i] = true; //-192 > -192
+								//-184 > -192, -185 > -192, -186 > 192
+						}
 
-			//Debug - print stuff
-			MyBitArray p2 = new MyBitArray (height, m_RowWidth);
-			p2.m_data = yBot;
-			++foo;
-			UnityEngine.Debug.Log ("yBot" + foo);
-			PrintBitArray (p2);
+						//Debug - print stuff
+						MyBitArray p2 = new MyBitArray (height, m_RowWidth);
+						p2.m_data = yBot;
+						++foo;
+						UnityEngine.Debug.Log ("yBot" + foo);
+						PrintBitArray (p2);
 
-			//shift - CAN'T do via mask because I don't have one consecutive array of bits in C#.
-			//They are split up across ints, which makes shifting a bitch - I still have to copy between ints
-			//(last part of int to first part of next int...), so it is easier just to use byte array.
-			++foo;
-			UnityEngine.Debug.Log ("Before shift" + foo);
-			PrintBitArray (myB);
-			byte[] bytes = ConvertToBytes (myB.m_data); //TODO - rather than doing converstion here, just keep track of byte array on MyBitArray
-			//ShiftRight (bytes);
-			for (int i = height -1; i > 0; --i) {
-				bytes [i] = bytes [i - 1];
-			}
-			bytes [0] = 0;
-			myB.m_data = ConvertToBitArray (bytes);
-			++foo;
-			UnityEngine.Debug.Log ("After shift" + foo);
-			PrintBitArray (myB);
+						//shift - CAN'T do via mask because I don't have one consecutive array of bits in C#.
+						//They are split up across ints, which makes shifting a bitch - I still have to copy between ints
+						//(last part of int to first part of next int...), so it is easier just to use byte array.
+						++foo;
+						UnityEngine.Debug.Log ("Before shift" + foo);
+						PrintBitArray (myB);
+						byte[] bytes = ConvertToBytes (myB.m_data); //TODO - rather than doing converstion here, just keep track of byte array on MyBitArray
+						//ShiftRight (bytes);
+						for (int i = height -1; i > 0; --i) {
+								bytes [i] = bytes [i - 1];
+						}
+						bytes [0] = 0;
+						myB.m_data = ConvertToBitArray (bytes);
+						++foo;
+						UnityEngine.Debug.Log ("After shift" + foo);
+						PrintBitArray (myB);
 
-			BitArray yTop = new BitArray (m_RowWidth * height);
-			for (int i = (((row +1) * m_RowWidth)-1); i >= 0; --i) { //includes the full row, hence the -1 (+1 is for 0-191, not 1-192)
-				yTop [i] = true;
-			}
+						BitArray yTop = new BitArray (m_RowWidth * height);
+						for (int i = (((row +1) * m_RowWidth)-1); i >= 0; --i) { //includes the full row, hence the -1 (+1 is for 0-191, not 1-192)
+								yTop [i] = true;
+						}
 
-			//Debug - print
-			MyBitArray p = new MyBitArray (height, m_RowWidth);
-			p.m_data = yTop;
-			++foo;
-			UnityEngine.Debug.Log ("yTop" + foo);
-			PrintBitArray (p);
+						//Debug - print
+						MyBitArray p = new MyBitArray (height, m_RowWidth);
+						p.m_data = yTop;
+						++foo;
+						UnityEngine.Debug.Log ("yTop" + foo);
+						PrintBitArray (p);
 
-			++foo;
-			UnityEngine.Debug.Log ("Answer" + foo);
-			MyBitArray ans = new MyBitArray (height, m_RowWidth);
-			ans.m_data = (x.And (yBot)).Or (myB.m_data.And (yTop)); //Take bottom or original grid, add it to the top of the shifted down grid
-			PrintBitArray (ans);
-			myB.m_data = ans.m_data;
-		}
-
-
-		/// <summary>
-		/// Shifts the bits in an array of bytes to the right.
-		/// </summary>
-		/// <param name="bytes">The byte array to shift.</param>
-		public static bool ShiftRight (byte[] bytes)
-		{
-			bool rightMostCarryFlag = false;
-			int rightEnd = bytes.Length - 1;
-				
-			// Iterate through the elements of the array right to left.
-			for (int index = rightEnd; index >= 0; index--) {
-				// If the rightmost bit of the current byte is 1 then we have a carry.
-				bool carryFlag = (bytes [index] & 0x01) > 0;
-					
-				if (index < rightEnd) {
-					if (carryFlag == true) {
-						// Apply the carry to the leftmost bit of the current bytes neighbor to the right.
-						bytes [index + 1] = (byte)(bytes [index + 1] | 0x80);
-					}
-				} else {
-					rightMostCarryFlag = carryFlag;
+						++foo;
+						UnityEngine.Debug.Log ("Answer" + foo);
+						MyBitArray ans = new MyBitArray (height, m_RowWidth);
+						ans.m_data = (x.And (yBot)).Or (myB.m_data.And (yTop)); //Take bottom or original grid, add it to the top of the shifted down grid
+						PrintBitArray (ans);
+						myB.m_data = ans.m_data;
 				}
-					
-				bytes [index] = (byte)(bytes [index] >> 1);
-			}
+
+
+				/// <summary>
+				/// Shifts the bits in an array of bytes to the right.
+				/// </summary>
+				/// <param name="bytes">The byte array to shift.</param>
+				public static bool ShiftRight (byte[] bytes)
+				{
+						bool rightMostCarryFlag = false;
+						int rightEnd = bytes.Length - 1;
 				
-			return rightMostCarryFlag;
-		} 
+						// Iterate through the elements of the array right to left.
+						for (int index = rightEnd; index >= 0; index--) {
+								// If the rightmost bit of the current byte is 1 then we have a carry.
+								bool carryFlag = (bytes [index] & 0x01) > 0;
+					
+								if (index < rightEnd) {
+										if (carryFlag == true) {
+												// Apply the carry to the leftmost bit of the current bytes neighbor to the right.
+												bytes [index + 1] = (byte)(bytes [index + 1] | 0x80);
+										}
+								} else {
+										rightMostCarryFlag = carryFlag;
+								}
+					
+								bytes [index] = (byte)(bytes [index] >> 1);
+						}
+				
+						return rightMostCarryFlag;
+				} 
 
-		public void StartNewGame ()
-		{			
-			//DeleteRowMyB ();
+				public void StartNewGame ()
+				{			
+						//DeleteRowMyB ();
 
-			m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
-			m_CurrentShape.TranslateToInitialPlacement ();
-			m_CurrentShape.enablePlayerControls ();
-			previewShape = m_Factory.SpawnRandomizedTetrisShape ();
-			previewShape.disablePlayerControls ();
-			m_IsGamePaused = false;
-			m_IsGameOver = false;
-		}
-		public void PauseGame ()
-		{
-			m_IsGamePaused = true;
-		}
-		public void ResumeGame ()
-		{
-			m_IsGamePaused = false;
-		}
-		public void EndGame ()
-		{
-			if (!m_IsGameOver) {
-				SaveLeaderboardScores ();
-				previewShape.DeleteShape ();				
-				m_IsGameOver = true;								
-			}
-		}
-		public void ClearGame ()
-		{
-			foreach (Shape s in m_ListOfShapes) {
-				s.DeleteShape ();
-			}
-			if (m_CurrentShape != null)
-				m_CurrentShape.DeleteShape ();
-			if (previewShape != null)
-				previewShape.DeleteShape ();
-			m_ListOfShapes.Clear ();						
-			m_CurrentShape = null;
-			m_PlacedBlockCount = 0;
-		}
-
-		private void SaveLeaderboardScores ()
-		{
-			List<LeaderboardScore> highScores = LoadLeaderboardScores ();
-			try {
-				highScores.Add (new LeaderboardScore (System.Environment.MachineName, m_PlacedBlockCount, DateTime.Now, "1.0.0"));
-				m_HighScores = highScores; //update public exposed leaderboard for GUI
-				string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
-				System.IO.File.WriteAllText (@"Leaderboard.txt", json);
-			} catch (Exception ex) {
-				UnityEngine.Debug.LogWarning ("Error writing leaderboard scores: " + ex.Message);
-			}
-		}
-		public List<LeaderboardScore> LoadLeaderboardScores () //todo - make private, fix issue where leaderboard doesn't update right after a game for some reason...
-		{
-			List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
-			try {
-				string json;
-				using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
-					json = file.ReadToEnd ();
+						m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
+						m_CurrentShape.TranslateToInitialPlacement ();
+						m_CurrentShape.enablePlayerControls ();
+						previewShape = m_Factory.SpawnRandomizedTetrisShape ();
+						previewShape.disablePlayerControls ();
+						m_IsGamePaused = false;
+						m_IsGameOver = false;
 				}
-				highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
-				highScores = highScores.OrderByDescending (x => x.Score).ToList ();
-				m_HighScores = highScores; //update public exposed leaderboard for GUI
-			} catch (Exception ex) {
-				UnityEngine.Debug.LogWarning ("Error loading leaderboard scores: " + ex.Message);
-			}
-			return highScores;
-		}
+				public void PauseGame ()
+				{
+						m_IsGamePaused = true;
+				}
+				public void ResumeGame ()
+				{
+						m_IsGamePaused = false;
+				}
+				public void EndGame ()
+				{
+						if (!m_IsGameOver) {
+								SaveLeaderboardScores ();
+								previewShape.DeleteShape ();				
+								m_IsGameOver = true;								
+						}
+				}
+				public void ClearGame ()
+				{
+						foreach (Shape s in m_ListOfShapes) {
+								s.DeleteShape ();
+						}
+						if (m_CurrentShape != null)
+								m_CurrentShape.DeleteShape ();
+						if (previewShape != null)
+								previewShape.DeleteShape ();
+						m_ListOfShapes.Clear ();						
+						m_CurrentShape = null;
+						m_PlacedBlockCount = 0;
+				}
 
-		public bool DoAnyShapesCollideInScene (UnityEngine.Vector3 movementVector)
-		{
-			foreach (Shape shape in m_ListOfShapes) { //for each object in the scene that is colliable
-				if (m_CurrentShape.collides (shape, movementVector))
-					return true;
-			}
-			return false;
-		}
+				private void SaveLeaderboardScores ()
+				{
+						List<LeaderboardScore> highScores = LoadLeaderboardScores ();
+						try {
+								highScores.Add (new LeaderboardScore (System.Environment.MachineName, m_PlacedBlockCount, DateTime.Now, "1.0.0"));
+								m_HighScores = highScores; //update public exposed leaderboard for GUI
+								string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
+								System.IO.File.WriteAllText (@"Leaderboard.txt", json);
+						} catch (Exception ex) {
+								UnityEngine.Debug.LogWarning ("Error writing leaderboard scores: " + ex.Message);
+						}
+				}
+				public List<LeaderboardScore> LoadLeaderboardScores () //todo - make private, fix issue where leaderboard doesn't update right after a game for some reason...
+				{
+						List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
+						try {
+								string json;
+								using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
+										json = file.ReadToEnd ();
+								}
+								highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
+								highScores = highScores.OrderByDescending (x => x.Score).ToList ();
+								m_HighScores = highScores; //update public exposed leaderboard for GUI
+						} catch (Exception ex) {
+								UnityEngine.Debug.LogWarning ("Error loading leaderboard scores: " + ex.Message);
+						}
+						return highScores;
+				}
+
+				public bool DoAnyShapesCollideInScene (UnityEngine.Vector3 movementVector)
+				{
+						foreach (Shape shape in m_ListOfShapes) { //for each object in the scene that is colliable
+								if (m_CurrentShape.collides (shape, movementVector))
+										return true;
+						}
+						return false;
+				}
 		
-		public void Tick ()
-		{			
-			if (m_IsGamePaused || m_IsGameOver || m_CurrentShape == null)
-				return;
+				public void Tick ()
+				{			
+						if (m_IsGamePaused || m_IsGameOver || m_CurrentShape == null)
+								return;
 									
-			//currentShape.Tick();
-			UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1.0f, 0);
-			if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
+						//currentShape.Tick();
+						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1.0f, 0);
+						if (Collides (movementVector)) {
+								//if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || Collides (movementVector)) {
+								//DoAnyShapesCollideInScene (movementVector)) {
 								
-				m_CurrentShape.PlayCollisionAudio ();
-				++m_PlacedBlockCount;
-				m_ListOfShapes.Add (m_CurrentShape);
+								m_CurrentShape.PlayCollisionAudio ();
+								++m_PlacedBlockCount;
+								m_ListOfShapes.Add (m_CurrentShape);
+								UpdateBitArray (true);
 
-				//Handle game end condition
-				if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
-					UnityEngine.GameObject.Find ("background").audio.Play ();
-					EndGame ();
-					return;
-				}
+								//Handle game end condition
+								if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
+										UnityEngine.GameObject.Find ("background").audio.Play ();
+										EndGame ();
+										return;
+								}
 
-				//My approach to deleting rows: detect full rows, delete (and shift shapes down) top to bottom
-				//Note: Actual object destruction is always delayed until after the current Update loop, but will always be done before rendering.
-				//https://docs.unity3d.com/Documentation/ScriptReference/Object.Destroy.html
+								//My approach to deleting rows: detect full rows, delete (and shift shapes down) top to bottom
+								//Note: Actual object destruction is always delayed until after the current Update loop, but will always be done before rendering.
+								//https://docs.unity3d.com/Documentation/ScriptReference/Object.Destroy.html
 
-				//Add up number of blocks in each row
-				Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-				foreach (Shape s in m_ListOfShapes) {
-					foreach (int row in s.GetRowValuesOfSubBlocks()) {
-						if (rowCounts.ContainsKey (row))
-							rowCounts [row]++;
-						else
-							rowCounts.Add (row, 1);
-					}
-				}
-				//Make sure it is ordered top to bottom
-				rowCounts = rowCounts.OrderByDescending (x => x.Key).ToDictionary (x => x.Key, x => x.Value);
+								//Add up number of blocks in each row
+								Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
+								foreach (Shape s in m_ListOfShapes) {
+										foreach (int row in s.GetRowValuesOfSubBlocks()) {
+												if (rowCounts.ContainsKey (row))
+														rowCounts [row]++;
+												else
+														rowCounts.Add (row, 1);
+										}
+								}
+								//Make sure it is ordered top to bottom
+								rowCounts = rowCounts.OrderByDescending (x => x.Key).ToDictionary (x => x.Key, x => x.Value);
 
-				UnityEngine.Debug.Log ("Before deleting anything...");
-				PrintBitArray ();
-				//Detect full rows and delete/shift
-				foreach (int row in rowCounts.Keys) {
-					if (CheckForFullRow (row + 1)) {
-						UnityEngine.Debug.Log ("Bit Row " + row + " is full!");
-						//if (rowCounts [row] == m_RowWidth) {
-						UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now...");
-						DeleteRow (row);
-						DeleteRowMyB (row + 1); //TODO - shift up for now. bit grid is 0-24, these rows are 1-25
-					} else if (rowCounts [row] > m_RowWidth) {
-						UnityEngine.Debug.LogWarning ("Row " + row + " contains over " + m_RowWidth + " blocks! Contains: " + rowCounts [row]);
-					}
-				}
+								UnityEngine.Debug.Log ("Before deleting anything...");
+								PrintBitArray ();
+								//Detect full rows and delete/shift
+								foreach (int row in rowCounts.Keys) {
+										if (CheckForFullRow (row + 1)) {
+												UnityEngine.Debug.Log ("Bit Row " + row + " is full!");
+												//if (rowCounts [row] == m_RowWidth) {
+												UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now...");
+												DeleteRow (row);
+												DeleteRowMyB (row + 1); //TODO - shift up for now. bit grid is 0-24, these rows are 1-25
+										} else if (rowCounts [row] > m_RowWidth) {
+												UnityEngine.Debug.LogWarning ("Row " + row + " contains over " + m_RowWidth + " blocks! Contains: " + rowCounts [row]);
+										}
+								}
 
-				//Switch to previewed Shape and generate a new one
+								//Switch to previewed Shape and generate a new one
 								
-				m_CurrentShape.disablePlayerControls ();
-				m_CurrentShape = previewShape;								
-				m_CurrentShape.enablePlayerControls ();
-				m_CurrentShape.TranslateToInitialPlacement ();
-				previewShape = m_Factory.SpawnRandomizedTetrisShape ();
-				//PrintBitArray ();
+								m_CurrentShape.disablePlayerControls ();
+								m_CurrentShape = previewShape;								
+								m_CurrentShape.enablePlayerControls ();
+								m_CurrentShape.TranslateToInitialPlacement ();
+								previewShape = m_Factory.SpawnRandomizedTetrisShape ();
+								PrintBitArray ();
 
-			} else {
-				UpdateBitArray (false);
-				m_CurrentShape.translate (movementVector);
+						} else {
+								//UpdateBitArray (false);
+								m_CurrentShape.translate (movementVector);
 
-				UpdateBitArray (true);
-				//PrintBitArray ();
-			}
-		}
-		static int foo = 0;
-		public void UpdateBitArray (bool val)
-		{
-			//foo++;
-			//if (val)
-			//	UnityEngine.Debug.Log ("Setting true" + foo);
-			//else
-			//	UnityEngine.Debug.Log ("Setting false" + foo);
-			List<KeyValuePair<int, int>> rowCols = m_CurrentShape.GetFilledGridValues ();
-			foreach (KeyValuePair<int,int> rowCol in rowCols) {
-				myB [rowCol.Key, rowCol.Value] = val;
-			}
-			//PrintBitArray ();
-		}
-
-		private void DeleteRow (int row)
-		{
-			List<Shape> shapesToRemove = new List<Shape> ();
-			foreach (Shape s in m_ListOfShapes) {								
-				if (s.DeleteBlocksInRow (row) == 0) {
-					shapesToRemove.Add (s); //can't modify list while I'm iterating through it, mark for delete
+								//	UpdateBitArray (true);
+								//PrintBitArray ();
+						}
 				}
-			}
+				static int foo = 0;
+				public void UpdateBitArray (bool val)
+				{
+						//foo++;
+						//if (val)
+						//	UnityEngine.Debug.Log ("Setting true" + foo);
+						//else
+						//	UnityEngine.Debug.Log ("Setting false" + foo);
+						List<KeyValuePair<int, int>> rowCols = m_CurrentShape.GetFilledGridValues ();
+						foreach (KeyValuePair<int,int> rowCol in rowCols) {
+								myB [rowCol.Key, rowCol.Value] = val;
+						}
+						//PrintBitArray ();
+				}
 
-			foreach (Shape s in shapesToRemove) {
-				UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
-				m_ListOfShapes.Remove (s);
-				s.DeleteShape ();
-			}
+				public bool Collides (UnityEngine.Vector3 movementVector)
+				{
+					
+
+						List<KeyValuePair<int, int>> rowCols = m_CurrentShape.GetFilledGridValues ();
+						foreach (KeyValuePair<int,int> rowCol in rowCols) {
+								int row = (int)Math.Abs (rowCol.Key + movementVector.y); //0 to -24
+								int col = (int)(rowCol.Value + movementVector.x); // 0 to 8
+
+								if (row >= height || col >= m_RowWidth || col < 0 || myB [row, col] == true) //>= due to 0 to (height-1) indexes...
+										return true; //found collision
+						}
+
+
+					
+						return false;
+				}
+
+
+				//for rotation
+				// - remove current from grid to prevent collisions with itself
+				// - rotate
+				// - compare the new grid locs with the actual grid
+				// - either allow or rotate back
+				// - add back current shape to grid
+
+				//idea - should i even keep track of current shape in the grid? I don't see any need
+				// as long as I poll the locs... I'm always comparing to the static shape of the grid
+				//NICE - I like that... clutch :)
+				public bool Collides (Shape s)
+				{
+						bool result = false;
+						/*//remove current shape from grid so it doesn't collide with itself?
+						List<KeyValuePair<int, int>> rowCols2 = s.GetFilledGridValues ();
+						foreach (KeyValuePair<int,int> rowCol in rowCols2) {
+								myB [rowCol.Key, rowCol.Value] = false;
+						}
+			
+						List<KeyValuePair<int, int>> rowCols = s.GetFilledGridValues ();
+						foreach (KeyValuePair<int,int> rowCol in rowCols) {
+								int row = (int)Math.Abs (rowCol.Key + movementVector.y); //0 to -24
+								int col = (int)(rowCol.Value + movementVector.x); // 0 to 8
+				
+								if (row >= height || col >= m_RowWidth || col < 0 || myB [row, col] == true) //>= due to 0 to (height-1) indexes...
+										result = true; //found collision
+						}
+			
+			
+						rowCols2 = m_CurrentShape.GetFilledGridValues ();
+						foreach (KeyValuePair<int,int> rowCol in rowCols2) {
+								myB [rowCol.Key, rowCol.Value] = true;
+						}*/
+						return result;
+				}
+
+				private void DeleteRow (int row)
+				{
+						List<Shape> shapesToRemove = new List<Shape> ();
+						foreach (Shape s in m_ListOfShapes) {								
+								if (s.DeleteBlocksInRow (row) == 0) {
+										shapesToRemove.Add (s); //can't modify list while I'm iterating through it, mark for delete
+								}
+						}
+
+						foreach (Shape s in shapesToRemove) {
+								UnityEngine.Debug.Log (s.Name + " has been completely destroyed.");
+								m_ListOfShapes.Remove (s);
+								s.DeleteShape ();
+						}
 									
-			foreach (Shape s2 in m_ListOfShapes) {										
-				s2.ShiftBlocksAboveDeletedRow (row);										
-			}
+						foreach (Shape s2 in m_ListOfShapes) {										
+								s2.ShiftBlocksAboveDeletedRow (row);										
+						}
 						
-			//Debug printing...
-			string shapeList = "List of shapes(" + m_ListOfShapes.Count + "): " + Environment.NewLine;
-			foreach (Shape s in m_ListOfShapes) {
-				shapeList += s.Name + Environment.NewLine;
-			}
-			UnityEngine.Debug.Log (shapeList);
-		}
-
-
-		//Debug helper function
-		public int GetRowCount (int row)
-		{
-			Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-			foreach (Shape s in m_ListOfShapes) {
-				
-				//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
-				
-				foreach (int rownum in s.GetRowValuesOfSubBlocks()) {
-					if (rowCounts.ContainsKey (rownum))
-						rowCounts [rownum]++;
-					else
-						rowCounts.Add (rownum, 1);
+						//Debug printing...
+						string shapeList = "List of shapes(" + m_ListOfShapes.Count + "): " + Environment.NewLine;
+						foreach (Shape s in m_ListOfShapes) {
+								shapeList += s.Name + Environment.NewLine;
+						}
+						UnityEngine.Debug.Log (shapeList);
 				}
-			}
+
+
+				//Debug helper function
+				public int GetRowCount (int row)
+				{
+						Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
+						foreach (Shape s in m_ListOfShapes) {
+				
+								//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
+				
+								foreach (int rownum in s.GetRowValuesOfSubBlocks()) {
+										if (rowCounts.ContainsKey (rownum))
+												rowCounts [rownum]++;
+										else
+												rowCounts.Add (rownum, 1);
+								}
+						}
 			
-			if (!rowCounts.ContainsKey (row))
-				return -1;
+						if (!rowCounts.ContainsKey (row))
+								return -1;
 			
-			return rowCounts [row];
+						return rowCounts [row];
+				}
 		}
-	}
 }
 
