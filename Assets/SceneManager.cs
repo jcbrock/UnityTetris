@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System.Linq;
 namespace AssemblyCSharp
 {
+	//TODO - break out into another file
 	public class LeaderboardScore
 	{
 		public string Name { get; set; }
@@ -30,9 +31,15 @@ namespace AssemblyCSharp
 		}
 	}
 
-	//also fix some using of member varibles as globals more like
+	//The SceneManager class is responsible for
+	// - game state
+	// - main game tick function
+	//TODO - also fix some using of member varibles as globals more like
 	public class SceneManager
 	{
+		//Used to make debug print statements unique
+		static int foo = 0;
+
 		//For these member variables surfaced outside of class, only expose as read-only
 		public Shape CurrentShape { get { return m_CurrentShape; } }
 		public List<LeaderboardScore> HighScores { get { return m_HighScores; } }
@@ -41,27 +48,29 @@ namespace AssemblyCSharp
 		
 		private ShapeFactory m_Factory;
 		private Shape m_CurrentShape;
-		private Shape previewShape;
+		private Shape m_PreviewShape;
 		private List<LeaderboardScore> m_HighScores = new List<LeaderboardScore> ();
 		private int m_PlacedBlockCount = 0;
 		private bool m_IsGamePaused = false;
 		private bool m_IsGameOver = false;
 		private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
-		private int m_RowWidth = 10; //must match the Unity grid
+		private static int m_ColumnCount = 8; //must match the Unity grid
+		private static int m_RowCount = 24;
+		private TetrisBitArray m_SceneGrid = new TetrisBitArray (m_RowCount, m_ColumnCount);
 
 		public SceneManager ()
 		{
 			m_Factory = new ShapeFactory ();
 			LoadLeaderboardScores ();
-		}
-
+		}		
+		
 		public void StartNewGame ()
-		{												
+		{			
 			m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
 			m_CurrentShape.TranslateToInitialPlacement ();
 			m_CurrentShape.enablePlayerControls ();
-			previewShape = m_Factory.SpawnRandomizedTetrisShape ();
-			previewShape.disablePlayerControls ();
+			m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
+			m_PreviewShape.disablePlayerControls ();
 			m_IsGamePaused = false;
 			m_IsGameOver = false;
 		}
@@ -77,7 +86,7 @@ namespace AssemblyCSharp
 		{
 			if (!m_IsGameOver) {
 				SaveLeaderboardScores ();
-				previewShape.DeleteShape ();				
+				m_PreviewShape.DeleteShape ();				
 				m_IsGameOver = true;								
 			}
 		}
@@ -88,8 +97,8 @@ namespace AssemblyCSharp
 			}
 			if (m_CurrentShape != null)
 				m_CurrentShape.DeleteShape ();
-			if (previewShape != null)
-				previewShape.DeleteShape ();
+			if (m_PreviewShape != null)
+				m_PreviewShape.DeleteShape ();
 			m_ListOfShapes.Clear ();						
 			m_CurrentShape = null;
 			m_PlacedBlockCount = 0;
@@ -123,26 +132,20 @@ namespace AssemblyCSharp
 			}
 			return highScores;
 		}
-
-		public bool DoAnyShapesCollideInScene (UnityEngine.Vector3 movementVector)
-		{
-			foreach (Shape shape in m_ListOfShapes) { //for each object in the scene that is colliable
-				if (m_CurrentShape.collides (shape, movementVector))
-					return true;
-			}
-			return false;
-		}
 		
 		public void Tick ()
 		{			
 			if (m_IsGamePaused || m_IsGameOver || m_CurrentShape == null)
 				return;
+									
 			//currentShape.Tick();
 			UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1.0f, 0);
-			if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
+			if (Collides (m_CurrentShape, movementVector)) {
 				m_CurrentShape.PlayCollisionAudio ();
 				++m_PlacedBlockCount;
 				m_ListOfShapes.Add (m_CurrentShape);
+				AddCurrentShapeToSceneBitGrid (true);
+				m_SceneGrid.UpdateRowBytes ();
 
 				//Handle game end condition
 				if (AssemblyCSharp.NewBehaviourScript.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
@@ -151,49 +154,65 @@ namespace AssemblyCSharp
 					return;
 				}
 
-				//My approach to deleting rows: detect full rows, delete (and shift shapes down) top to bottom
-				//Note: Actual object destruction is always delayed until after the current Update loop, but will always be done before rendering.
-				//https://docs.unity3d.com/Documentation/ScriptReference/Object.Destroy.html
-
-				//Add up number of blocks in each row
-				Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-				foreach (Shape s in m_ListOfShapes) {
-					foreach (int row in s.GetRowValuesOfSubBlocks()) {
-						if (rowCounts.ContainsKey (row))
-							rowCounts [row]++;
-						else
-							rowCounts.Add (row, 1);
-					}
-				}
-				//Make sure it is ordered top to bottom
-				rowCounts = rowCounts.OrderByDescending (x => x.Key).ToDictionary (x => x.Key, x => x.Value);
+				UnityEngine.Debug.Log ("Before deleting anything...");
+				m_SceneGrid.PrintBitArray ();
 
 				//Detect full rows and delete/shift
-				foreach (int row in rowCounts.Keys) {
-					if (rowCounts [row] == m_RowWidth) {
-						UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now...");
-						DeleteRow (row);
-					} else {
-						UnityEngine.Debug.LogWarning ("Row contains over " + m_RowWidth + " blocks");
-					}
+				List<int> fullRows = m_SceneGrid.GetFullRows (); //it'll be ordered 0 to 24
+
+				//Delete full rows in UI and in the grid
+				foreach (int row in fullRows) {
+					foo++;
+					UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now..." + foo);
+					DeleteRowInUI (row + 1); //need to -1 because row positions for the shapes are -1 to -25, not 0 to -24, gets converted to negative in func
+					m_SceneGrid.DeleteRow (row);
 				}
 
-				//Switch to previewed Shape and generate a new one
+				//Switch to previewed Shape and generate a new one							
 				m_CurrentShape.disablePlayerControls ();
-				m_CurrentShape = previewShape;								
+				m_CurrentShape = m_PreviewShape;								
 				m_CurrentShape.enablePlayerControls ();
 				m_CurrentShape.TranslateToInitialPlacement ();
-				previewShape = m_Factory.SpawnRandomizedTetrisShape ();
+				m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
+				//myB.PrintBitArray ();
+
 			} else {
 				m_CurrentShape.translate (movementVector);
 			}
 		}
+		public void AddCurrentShapeToSceneBitGrid (bool val)
+		{		
+			List<KeyValuePair<int, int>> rowCols = m_CurrentShape.GetFilledGridValues ();
+			foreach (KeyValuePair<int,int> rowCol in rowCols) {
+				m_SceneGrid [rowCol.Key, rowCol.Value] = val;
+			}
+		}
 
-		private void DeleteRow (int row)
+		//can move this to shape, but then have to access scene grid. which is better? TODO
+		public bool Collides (Shape s, UnityEngine.Vector3 movementVector)
 		{
+			List<KeyValuePair<int, int>> rowCols = s.GetFilledGridValues ();
+			foreach (KeyValuePair<int,int> rowCol in rowCols) {
+				int row = (int)Math.Abs (rowCol.Key + movementVector.y); //0 to -24
+				int col = (int)(rowCol.Value + movementVector.x); // 0 to 8
+				
+				if (row >= m_RowCount || col >= m_ColumnCount || col < 0 || m_SceneGrid [row, col] == true) //>= due to 0 to (height-1) indexes...
+					return true; //found collision
+			}
+			
+			return false;
+		}
+
+		private void DeleteRowInUI (int row)
+		{
+			//Note: Actual object destruction is always delayed until after the current Update loop, but will always be done before rendering.
+			//https://docs.unity3d.com/Documentation/ScriptReference/Object.Destroy.html
+
+			foo++;
+			UnityEngine.Debug.Log ("(Row + " + (row - 1) + ") Deleting x = : " + row + " in the UI." + foo);
 			List<Shape> shapesToRemove = new List<Shape> ();
 			foreach (Shape s in m_ListOfShapes) {								
-				if (s.DeleteBlocksInRow (row) == 0) {
+				if (s.DeleteBlocksInRow (row * -1) == 0) {//TODO, fix all my -1 crap. I have to translate this to acutal game pos, which is negative
 					shapesToRemove.Add (s); //can't modify list while I'm iterating through it, mark for delete
 				}
 			}
@@ -205,38 +224,15 @@ namespace AssemblyCSharp
 			}
 									
 			foreach (Shape s2 in m_ListOfShapes) {										
-				s2.ShiftBlocksAboveDeletedRow (row);										
+				s2.ShiftBlocksAboveDeletedRow (row * -1);										
 			}
 						
 			//Debug printing...
-			string shapeList = "List of shapes(" + m_ListOfShapes.Count + "): " + Environment.NewLine;
+			/*string shapeList = "List of shapes(" + m_ListOfShapes.Count + "): " + Environment.NewLine;
 			foreach (Shape s in m_ListOfShapes) {
 				shapeList += s.Name + Environment.NewLine;
 			}
-			UnityEngine.Debug.Log (shapeList);
-		}
-
-
-		//Debug helper function
-		public int GetRowCount (int row)
-		{
-			Dictionary<int, int> rowCounts = new Dictionary<int, int> ();
-			foreach (Shape s in m_ListOfShapes) {
-				
-				//UnityEngine.Debug.Log ("Block count for shape: " + s.BlockCount ());
-				
-				foreach (int rownum in s.GetRowValuesOfSubBlocks()) {
-					if (rowCounts.ContainsKey (rownum))
-						rowCounts [rownum]++;
-					else
-						rowCounts.Add (rownum, 1);
-				}
-			}
-			
-			if (!rowCounts.ContainsKey (row))
-				return -1;
-			
-			return rowCounts [row];
+			UnityEngine.Debug.Log (shapeList);*/
 		}
 	}
 }

@@ -37,7 +37,7 @@ namespace AssemblyCSharp
 			if (randomShape == TetrisShape.unknown)
 				throw new System.Exception ("unknown tetris shape generated!");
 
-			float xStart = UnityEngine.Random.Range (1, 10); //10 = length of tetris board (x)
+			float xStart = UnityEngine.Random.Range (2, 7); //10 = length of tetris board (x)
 			xStart -= (float)0.5;
 			int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
 			UnityEngine.Vector3 temp = new UnityEngine.Vector3 (-5.0f, (float)-0.5, 0);

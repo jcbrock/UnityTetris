@@ -24,35 +24,13 @@ namespace AssemblyCSharp
 				movementVector.y = -1.0f;
 			}
 			if (movementVector.x != 0 || movementVector.y != 0) {
-				if (!NewBehaviourScript.sceneMgr.CurrentShape.CheckCollisionWithAnyWall (movementVector) && !NewBehaviourScript.sceneMgr.DoAnyShapesCollideInScene (movementVector))									
-					transform.Translate (movementVector, UnityEngine.Space.World);			
+				if (!NewBehaviourScript.sceneMgr.Collides (NewBehaviourScript.sceneMgr.CurrentShape, movementVector)) {
+					transform.Translate (movementVector, UnityEngine.Space.World);							
+				}
 			}
 
-			if (Input.GetKeyDown (KeyCode.UpArrow)) {							
+			if (Input.GetKeyDown (KeyCode.UpArrow)) {				
 				NewBehaviourScript.sceneMgr.CurrentShape.Rotate ();
-			}
-
-			//Debug functions
-			if (Input.GetKeyDown (KeyCode.Keypad1)) { 
-				UnityEngine.Debug.Log ("Row -25 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-25));
-			}
-			if (Input.GetKeyDown (KeyCode.Keypad2)) { 
-				UnityEngine.Debug.Log ("Row -24 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-24));
-			}
-			if (Input.GetKeyDown (KeyCode.Keypad3)) { 
-				UnityEngine.Debug.Log ("Row -23 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-23));
-			}
-			if (Input.GetKeyDown (KeyCode.Keypad4)) { 
-				UnityEngine.Debug.Log ("Row -22 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-22));
-			}
-			if (Input.GetKeyDown (KeyCode.Keypad5)) { 
-				UnityEngine.Debug.Log ("Row -21 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-21));
-			}
-			if (Input.GetKeyDown (KeyCode.Keypad6)) { 
-				UnityEngine.Debug.Log ("Row -20 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-20));
-			}
-			if (Input.GetKeyDown (KeyCode.Keypad7)) { 
-				UnityEngine.Debug.Log ("Row -19 block count: " + NewBehaviourScript.sceneMgr.GetRowCount (-19));
 			}
 		}
 	}
