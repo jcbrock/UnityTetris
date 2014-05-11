@@ -101,9 +101,10 @@ public class DelegateMenu : MonoBehaviour
 
 		private void inGameHUD ()
 		{
-				if (AssemblyCSharp.UnityTetris.sceneMgr.IsGameOver) {
-						menuFunction = mainMenu;
-				} else if (Input.GetKeyDown (KeyCode.Escape)) {						
+				//if (AssemblyCSharp.UnityTetris.sceneMgr.IsGameOver) {
+				//		menuFunction = mainMenu;
+				//			} else 
+				if (Input.GetKeyDown (KeyCode.Escape)) {						
 						menuFunction = mainMenuWithResume;
 						AssemblyCSharp.UnityTetris.sceneMgr.PauseGame ();
 				}

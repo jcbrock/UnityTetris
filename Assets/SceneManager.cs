@@ -30,58 +30,134 @@ namespace AssemblyCSharp
 				}
 		}
 
+		
+		//Apparently Structs are more different than classes in C# than they are in C++
+		//Yet, their member variables default to private like classes do, (which is different than c++)
+		public struct SceneRequestInfo
+		{
+				public enum Type
+				{
+						None,
+						ClearGame,
+						EndGame,
+						PauseGame,
+						ResumeGame,
+						StartGame
+						
+				}
+
+				public struct ClearGameData
+				{
+						
+				};
+				public struct EndGameData
+				{
+			
+				};
+				public struct PauseGameData
+				{
+			
+				};
+				public struct ResumeGameData
+				{
+			
+				};
+				public struct StartGameData
+				{
+			
+				};
+				
+				public string debugName;// = "foo";
+				public	SceneRequestInfo.Type type;
+				public	ClearGameData clearGame;
+				public	EndGameData endGame;
+				public	PauseGameData pauseGame;
+				public	ResumeGameData resumeGame;
+				public	StartGameData startGame;				
+		}
+
+
+
 		//also fix some using of member varibles as globals more like
 		public class SceneManager
 		{
+				enum GameState
+				{
+						None,
+						Paused,
+						Running
+				}
+
 				//For these member variables surfaced outside of class, only expose as read-only
 				public Shape CurrentShape { get { return m_CurrentShape; } }
 				public List<LeaderboardScore> HighScores { get { return m_HighScores; } }
 				public int PlacedBlockCount { get { return m_PlacedBlockCount; } }
-				public bool IsGameOver { get { return m_IsGameOver; } }
 		
 				private ShapeFactory m_Factory;
 				private Shape m_CurrentShape;
 				private Shape previewShape;
 				private List<LeaderboardScore> m_HighScores = new List<LeaderboardScore> ();
 				private int m_PlacedBlockCount = 0;
-				private bool m_IsGamePaused = false;
-				private bool m_IsGameOver = false;
+							
 				private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
 				private int m_RowWidth = 10; //must match the Unity grid
+
+
+				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();
+				private GameState gameState;
 
 				public SceneManager ()
 				{
 						m_Factory = new ShapeFactory ();
-						LoadLeaderboardScores ();
+						LoadLeaderboardScores ();						
 				}
 
-				public void StartNewGame ()
-				{												
-						m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
-						m_CurrentShape.TranslateToInitialPlacement ();
-						m_CurrentShape.enablePlayerControls ();
-						previewShape = m_Factory.SpawnRandomizedTetrisShape ();
-						previewShape.disablePlayerControls ();
-						m_IsGamePaused = false;
-						m_IsGameOver = false;
-				}
-				public void PauseGame ()
-				{
-						m_IsGamePaused = true;
-				}
-				public void ResumeGame ()
-				{
-						m_IsGamePaused = false;
-				}
-				public void EndGame ()
-				{
-						if (!m_IsGameOver) {
-								SaveLeaderboardScores ();
-								previewShape.DeleteShape ();				
-								m_IsGameOver = true;								
+				
+				public void UpdateQueuedRequests ()
+				{						
+						if (requestQueue.Count == 0)
+								return;
+
+						//pop request
+						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
+									
+						switch (request.type) {
+						case SceneRequestInfo.Type.EndGame:
+								{
+										HandleEndGameRequest (request);
+										break;
+								}
+						case SceneRequestInfo.Type.ClearGame:
+								{
+										HandleClearGameRequest (request);
+										break;
+								}
+						case SceneRequestInfo.Type.PauseGame:
+								{
+										HandlePauseGameRequest (request);
+										break;
+								}		
+						case SceneRequestInfo.Type.ResumeGame:
+								{
+										HandleResumeGameRequest (request);
+										break;
+								}		
+						case SceneRequestInfo.Type.StartGame:
+								{
+										HandleStartGameRequest (request);
+										break;
+								}
+						default:
+								{
+										UnityEngine.Debug.LogWarning ("No type sent on GameState request... this is probably bad!");
+										break;
+								}
 						}
+
+
 				}
-				public void ClearGame ()
+
+				private void HandleClearGameRequest (SceneRequestInfo request)
 				{
 						foreach (Shape s in m_ListOfShapes) {
 								s.DeleteShape ();
@@ -93,6 +169,75 @@ namespace AssemblyCSharp
 						m_ListOfShapes.Clear ();						
 						m_CurrentShape = null;
 						m_PlacedBlockCount = 0;
+				}
+				private void HandleEndGameRequest (SceneRequestInfo request)
+				{
+						if (!m_IsGameOver) {
+								SaveLeaderboardScores ();
+								previewShape.DeleteShape ();				
+								m_IsGameOver = true;								
+						}
+						gameState = GameState.Paused;
+				}
+				private void HandlePauseGameRequest (SceneRequestInfo request)
+				{
+						m_IsGamePaused = true;
+						gameState = GameState.Paused;
+				}
+				private void HandleResumeGameRequest (SceneRequestInfo request)
+				{
+						m_IsGamePaused = false;
+						gameState = GameState.Running;
+				}
+
+				private void HandleStartGameRequest (SceneRequestInfo request)
+				{
+						m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
+						m_CurrentShape.TranslateToInitialPlacement ();
+						m_CurrentShape.enablePlayerControls ();
+						previewShape = m_Factory.SpawnRandomizedTetrisShape ();
+						previewShape.disablePlayerControls ();
+						m_IsGamePaused = false;
+						m_IsGameOver = false;
+						gameState = GameState.Running;
+				}
+
+
+				public void StartNewGame ()
+				{		
+						SceneRequestInfo startRequest;
+						startRequest.debugName = "start";
+						startRequest.type = SceneRequestInfo.Type.StartGame;
+						requestQueue.Enqueue (startRequest);
+				}
+
+				public void PauseGame ()
+				{
+						SceneRequestInfo pauseRequest;
+						pauseRequest.type = SceneRequestInfo.Type.PauseGame;
+						pauseRequest.debugName = "pause";
+						requestQueue.Enqueue (pauseRequest);												
+				}
+				public void ResumeGame ()
+				{
+						SceneRequestInfo resumeRequest;
+						resumeRequest.type = SceneRequestInfo.Type.ResumeGame;
+						resumeRequest.debugName = "resume";
+						requestQueue.Enqueue (resumeRequest);						
+				}
+				public void EndGame ()
+				{
+						SceneRequestInfo endRequest;
+						endRequest.type = SceneRequestInfo.Type.EndGame;
+						endRequest.debugName = "end";
+						requestQueue.Enqueue (endRequest);					
+				}
+				public void ClearGame ()
+				{
+						SceneRequestInfo clearRequest;
+						clearRequest.type = SceneRequestInfo.Type.ClearGame;
+						clearRequest.debugName = "Clear request!";
+						requestQueue.Enqueue (clearRequest);
 				}
 
 				private void SaveLeaderboardScores ()
@@ -135,7 +280,9 @@ namespace AssemblyCSharp
 		
 				public void Tick ()
 				{			
-						if (m_IsGamePaused || m_IsGameOver || m_CurrentShape == null)
+						UpdateQueuedRequests ();
+
+						if (gameState == GameState.Paused || m_CurrentShape == null)
 								return;
 						//currentShape.Tick();
 						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1.0f, 0);
