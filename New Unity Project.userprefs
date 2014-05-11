@@ -1,13 +1,13 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\SceneManager.cs">
     <Files>
-      <File FileName="Assets\SceneManager.cs" Line="151" Column="9" />
-      <File FileName="Assets\UnityTetris.cs" Line="22" Column="19" />
+      <File FileName="Assets\SceneManager.cs" Line="108" Column="41" />
+      <File FileName="Assets\UnityTetris.cs" Line="1" Column="1" />
       <File FileName="Assets\PlayerControl.cs" Line="1" Column="1" />
-      <File FileName="Assets\DelegateMenu.cs" Line="78" Column="51" />
+      <File FileName="Assets\DelegateMenu.cs" Line="1" Column="1" />
       <File FileName="Assets\ShapeFactory.cs" Line="1" Column="1" />
-      <File FileName="Assets\Shape.cs" Line="118" Column="57" />
+      <File FileName="Assets\Shape.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -22,10 +22,10 @@
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
       <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Trigger2.js" line="3" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="562" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="540" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="708" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="686" />
       <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Shape.cs" line="67" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="442" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="588" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>
