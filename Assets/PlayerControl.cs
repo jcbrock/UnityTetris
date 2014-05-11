@@ -11,29 +11,28 @@ using UnityEngine;
 using System.Collections;
 namespace AssemblyCSharp
 {
-	public class PlayerControl : MonoBehaviour
-	{		
-		void Update ()
-		{
-			UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
-			if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-				movementVector.x = -1.0f;
-			} else if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-				movementVector.x = 1.0f;
-			} else if (Input.GetKeyDown (KeyCode.DownArrow)) { 
-				movementVector.y = -1.0f;
-			}
-			if (movementVector.x != 0 || movementVector.y != 0) {
-				if (!NewBehaviourScript.sceneMgr.Collides (NewBehaviourScript.sceneMgr.CurrentShape, movementVector)) {
-					transform.Translate (movementVector, UnityEngine.Space.World);							
+		public class PlayerControl : MonoBehaviour
+		{		
+				void Update ()
+				{
+						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+						if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+								movementVector.x = -1.0f;
+						} else if (Input.GetKeyDown (KeyCode.RightArrow)) { 
+								movementVector.x = 1.0f;
+						} else if (Input.GetKeyDown (KeyCode.DownArrow)) { 
+								movementVector.y = -1.0f;
+						}
+						if (movementVector.x != 0 || movementVector.y != 0) {
+								if (!UnityTetris.sceneMgr.CurrentShape.CheckCollisionWithAnyWall (movementVector) && !UnityTetris.sceneMgr.DoAnyShapesCollideInScene (movementVector))									
+										transform.Translate (movementVector, UnityEngine.Space.World);			
+						}
+			
+						if (Input.GetKeyDown (KeyCode.UpArrow)) {							
+								UnityTetris.sceneMgr.CurrentShape.Rotate ();
+						}
 				}
-			}
-
-			if (Input.GetKeyDown (KeyCode.UpArrow)) {				
-				NewBehaviourScript.sceneMgr.CurrentShape.Rotate ();
-			}
 		}
-	}
 }
 
 
