@@ -1,19 +1,20 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\SceneManager.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\UnityTetris.cs">
     <Files>
-      <File FileName="Assets\SceneManager.cs" Line="60" Column="26" />
-      <File FileName="Assets\NewBehaviourScript.cs" Line="1" Column="1" />
-      <File FileName="Assets\PlayerControl.cs" Line="1" Column="1" />
-      <File FileName="Assets\DelegateMenu.cs" Line="1" Column="1" />
-      <File FileName="Assets\ShapeFactory.cs" Line="46" Column="37" />
-      <File FileName="Assets\Shape.cs" Line="63" Column="6" />
+      <File FileName="Assets\SceneManager.cs" Line="120" Column="24" />
+      <File FileName="Assets\SceneManager.cs" Line="244" Column="1" />
+      <File FileName="Assets\UnityTetris.cs" Line="28" Column="22" />
+      <File FileName="Assets\PlayerControl.cs" Line="21" Column="59" />
+      <File FileName="Assets\DelegateMenu.cs" Line="51" Column="1" />
+      <File FileName="Assets\ShapeFactory.cs" Line="1" Column="1" />
+      <File FileName="Assets\Shape.cs" Line="139" Column="64" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="Assembly-CSharp" expanded="True">
-            <Node name="SceneManager.cs" selected="True" />
+            <Node name="UnityTetris.cs" selected="True" />
           </Node>
         </State>
       </Pad>
@@ -22,9 +23,12 @@
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
       <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Trigger2.js" line="3" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="405" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="383" />
-      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Shape.cs" line="67" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="891" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="869" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\Shape.cs" line="312" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="60" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\SceneManager.cs" line="112" />
+      <Breakpoint file="C:\Users\Jeff\Documents\GitHub\New Unity Project\Assets\DelegateMenu.cs" line="78" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>
