@@ -138,23 +138,7 @@ namespace AssemblyCSharp
 				private void translateInWorldSpace (UnityEngine.Vector3 vec)
 				{
 						m_CompositeGameObject.transform.Translate (vec, UnityEngine.Space.World);
-				}
-				public void enablePlayerControls ()
-				{
-						setPlayerControls (true);
-				}
-				public void disablePlayerControls ()
-				{
-						setPlayerControls (false);
-				}
-				private void setPlayerControls (bool turnOn)
-				{
-						var playerControl = ((PlayerControl)m_CompositeGameObject.GetComponent<PlayerControl> ());
-						if (playerControl != null)
-								playerControl.enabled = turnOn;
-						else
-								UnityEngine.Debug.LogWarning ("No player control found!"); //todo - replace with an assert of some kind
-				}
+				}				
 				
 				public List<int> GetRowValuesOfSubBlocks ()
 				{
