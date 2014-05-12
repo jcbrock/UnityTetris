@@ -30,54 +30,7 @@ namespace AssemblyCSharp
 						Version = version;
 				}
 		}
-
-	
-		//Apparently Structs are more different than classes in C# than they are in C++
-		//Yet, their member variables default to private like classes do, (which is different than c++)
-		public struct SceneRequestInfo
-		{
-				public enum Type
-				{
-						None,
-						ClearGame,
-						EndGame,
-						PauseGame,
-						ResumeGame,
-						StartGame
-			
-				}
 		
-				public struct ClearGameData
-				{
-			
-				};
-				public struct EndGameData
-				{
-			
-				};
-				public struct PauseGameData
-				{
-			
-				};
-				public struct ResumeGameData
-				{
-			
-				};
-				public struct StartGameData
-				{
-			
-				};
-		
-				public string debugName;// = "foo";
-				public	SceneRequestInfo.Type type;
-				public	ClearGameData clearGame;
-				public	EndGameData endGame;
-				public	PauseGameData pauseGame;
-				public	ResumeGameData resumeGame;
-				public	StartGameData startGame;				
-		}
-
-
 		//The SceneManager class is responsible for
 		// - game state
 		// - main game tick function
@@ -98,156 +51,167 @@ namespace AssemblyCSharp
 				public Shape CurrentShape { get { return m_CurrentShape; } }
 				public List<LeaderboardScore> HighScores { get { return m_HighScores; } }
 				public int PlacedBlockCount { get { return m_PlacedBlockCount; } }
-				public bool IsGameOver { get { return m_IsGameOver; } }
 		
 				private ShapeFactory m_Factory;
 				private Shape m_CurrentShape;
 				private Shape m_PreviewShape;
 				private List<LeaderboardScore> m_HighScores = new List<LeaderboardScore> ();
-				private int m_PlacedBlockCount = 0;
-				private bool m_IsGamePaused = false;
+				private int m_PlacedBlockCount = 0;				
 				private bool m_IsGameOver = false;
 				private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
 				private static int m_ColumnCount = 8; //must match the Unity grid
 				private static int m_RowCount = 24;
 				private TetrisBitArray m_SceneGrid = new TetrisBitArray (m_RowCount, m_ColumnCount);
-
-				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();
+		
+				private Queue<UnityTetris.SceneRequestInfo> requestQueue = new Queue<UnityTetris.SceneRequestInfo> ();
 				private GameState gameState;
+				private bool m_acceptingRequests = true; //once a game ends, this will be triggered to false. Must be set to true before a new game.
 
 				public SceneManager ()
 				{
 						m_Factory = new ShapeFactory ();
 						LoadLeaderboardScores ();
 				}		
-		
+
+				public void SendSceneRequest (UnityTetris.SceneRequestInfo request)
+				{
+						requestQueue.Enqueue (request);
+				}
+
 				public void UpdateQueuedRequests ()
-				{						
-						if (requestQueue.Count == 0)
+				{				
+						if (requestQueue.Count != 0 || (!m_acceptingRequests)) {
+								UnityTetris.SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
+				
+								switch (request.type) {
+								case UnityTetris.SceneRequestInfo.Type.RotateShapeRequest:
+										{
+												HandleRotateRequest (request);
+												break;
+										}
+								case UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest:
+										{
+												HandleTranslateRequest (request);
+												break;
+										}
+								case UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest:
+										{
+												HandleChangeGameStateRequest (request);
+												break;
+										}
+								default:
+										{
+												UnityEngine.Debug.LogWarning ("No type sent on SceneRequestInfo request... this is probably bad!");
+												break;
+										}
+								}
+						}
+				}
+						
+				private void HandleTranslateRequest (UnityTetris.SceneRequestInfo request)
+				{
+						if (gameState == GameState.Paused || m_CurrentShape == null)
 								return;
-			
-						//pop request
-						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
-			
-						switch (request.type) {
-						case SceneRequestInfo.Type.EndGame:
-								{
-										HandleEndGameRequest (request);
-										break;
+
+						UnityEngine.Vector3 movementVector = request.translationData.movementVector;
+						if (AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
+								m_CurrentShape.PlayCollisionAudio ();
+								++m_PlacedBlockCount;
+								m_ListOfShapes.Add (m_CurrentShape);
+								AddCurrentShapeToSceneBitGrid (true);
+								m_SceneGrid.UpdateRowBytes ();
+				
+								//Handle game end condition
+								if (AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
+										UnityEngine.GameObject.Find ("background").audio.Play ();
+										//EndGame ();
+										//todo - fix
+										UnityTetris.SceneRequestInfo request2 = new UnityTetris.SceneRequestInfo ();
+										request2.gameStateData.changeGameStateTo = AssemblyCSharp.ChangeGameState.EndGame;
+										HandleChangeGameStateRequest (request2);
+										return;
 								}
-						case SceneRequestInfo.Type.ClearGame:
-								{
-										HandleClearGameRequest (request);
-										break;
+				
+								UnityEngine.Debug.Log ("Before deleting anything...");
+								m_SceneGrid.PrintBitArray ();
+				
+								//Detect full rows and delete/shift
+								List<int> fullRows = m_SceneGrid.GetFullRows (); //it'll be ordered 0 to 24
+				
+								//Delete full rows in UI and in the grid
+								foreach (int row in fullRows) {
+										foo++;
+										UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now..." + foo);
+										DeleteRowInUI (row + 1); //need to -1 because row positions for the shapes are -1 to -25, not 0 to -24, gets converted to negative in func
+										m_SceneGrid.DeleteRow (row);
 								}
-						case SceneRequestInfo.Type.PauseGame:
-								{
-										HandlePauseGameRequest (request);
-										break;
-								}		
-						case SceneRequestInfo.Type.ResumeGame:
-								{
-										HandleResumeGameRequest (request);
-										break;
-								}		
-						case SceneRequestInfo.Type.StartGame:
-								{
-										HandleStartGameRequest (request);
-										break;
-								}
-						default:
-								{
-										UnityEngine.Debug.LogWarning ("No type sent on GameState request... this is probably bad!");
-										break;
-								}
+				
+								//Switch to previewed Shape and generate a new one															
+								m_CurrentShape = m_PreviewShape;																
+								m_CurrentShape.TranslateToInitialPlacement ();
+								m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
+								//myB.PrintBitArray ();
+				
+						} else if (!AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithLeftWall (movementVector) &&
+								!AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithRightWall (movementVector)) {
+								m_CurrentShape.translate (movementVector);
 						}
-			
-			
 				}
-		
-				private void HandleClearGameRequest (SceneRequestInfo request)
+				private void HandleRotateRequest (UnityTetris.SceneRequestInfo request)
 				{
-						foreach (Shape s in m_ListOfShapes) {
-								s.DeleteShape ();
-						}
-						if (m_CurrentShape != null)
-								m_CurrentShape.DeleteShape ();
-						if (m_PreviewShape != null)
-								m_PreviewShape.DeleteShape ();
-						m_ListOfShapes.Clear ();						
-						m_CurrentShape = null;
-						m_PlacedBlockCount = 0;
+						//TODO - someday move rotate out of shape...
+						m_CurrentShape.Rotate ();
 				}
-				private void HandleEndGameRequest (SceneRequestInfo request)
+				private void HandleChangeGameStateRequest (UnityTetris.SceneRequestInfo request)
 				{
-						if (!m_IsGameOver) {
-								SaveLeaderboardScores ();
-								m_PreviewShape.DeleteShape ();				
-								m_IsGameOver = true;								
-						}
-						gameState = GameState.Paused;
+						switch (request.gameStateData.changeGameStateTo) {
+						case AssemblyCSharp.ChangeGameState.ClearGame:
+								{
+										foreach (Shape s in m_ListOfShapes) {
+												s.DeleteShape ();
+										}
+										if (m_CurrentShape != null)
+												m_CurrentShape.DeleteShape ();
+										if (m_PreviewShape != null)
+												m_PreviewShape.DeleteShape ();
+										m_ListOfShapes.Clear ();						
+										m_CurrentShape = null;
+										m_PlacedBlockCount = 0;
+										break;
+								}
+						case AssemblyCSharp.ChangeGameState.PauseGame:
+								{										
+										gameState = GameState.Paused;
+										break;
+								}
+						case AssemblyCSharp.ChangeGameState.ResumeGame:
+								{										
+										gameState = GameState.Running;
+										break;
+								}
+						case AssemblyCSharp.ChangeGameState.StartGame:
+								{
+										m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
+										m_CurrentShape.TranslateToInitialPlacement ();										
+										m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
+										m_IsGameOver = false;
+										gameState = GameState.Running;
+										break;
+								}
+						case AssemblyCSharp.ChangeGameState.EndGame:
+								{					
+										m_acceptingRequests = false; //TODO - make sure I can't get in a state where I have actions executed in the queue after the game ended
+										if (!m_IsGameOver) {
+												SaveLeaderboardScores ();
+												m_PreviewShape.DeleteShape ();				
+												m_IsGameOver = true;								
+										}
+										gameState = GameState.Paused;
+										break;													
+								}
+						}				
 				}
-				private void HandlePauseGameRequest (SceneRequestInfo request)
-				{
-						m_IsGamePaused = true;
-						gameState = GameState.Paused;
-				}
-				private void HandleResumeGameRequest (SceneRequestInfo request)
-				{
-						m_IsGamePaused = false;
-						gameState = GameState.Running;
-				}
-		
-				private void HandleStartGameRequest (SceneRequestInfo request)
-				{
-						m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
-						m_CurrentShape.TranslateToInitialPlacement ();
-						m_CurrentShape.enablePlayerControls ();
-						m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
-						m_PreviewShape.disablePlayerControls ();
-						m_IsGamePaused = false;
-						m_IsGameOver = false;
-						gameState = GameState.Running;
-				}
-		
-		
-				public void StartNewGame ()
-				{		
-						SceneRequestInfo startRequest;
-						startRequest.debugName = "start";
-						startRequest.type = SceneRequestInfo.Type.StartGame;
-						requestQueue.Enqueue (startRequest);
-				}
-		
-				public void PauseGame ()
-				{
-						SceneRequestInfo pauseRequest;
-						pauseRequest.type = SceneRequestInfo.Type.PauseGame;
-						pauseRequest.debugName = "pause";
-						requestQueue.Enqueue (pauseRequest);												
-				}
-				public void ResumeGame ()
-				{
-						SceneRequestInfo resumeRequest;
-						resumeRequest.type = SceneRequestInfo.Type.ResumeGame;
-						resumeRequest.debugName = "resume";
-						requestQueue.Enqueue (resumeRequest);						
-				}
-				public void EndGame ()
-				{
-						SceneRequestInfo endRequest;
-						endRequest.type = SceneRequestInfo.Type.EndGame;
-						endRequest.debugName = "end";
-						requestQueue.Enqueue (endRequest);					
-				}
-				public void ClearGame ()
-				{
-						SceneRequestInfo clearRequest;
-						clearRequest.type = SceneRequestInfo.Type.ClearGame;
-						clearRequest.debugName = "Clear request!";
-						requestQueue.Enqueue (clearRequest);
-				}
-		
+
 				private void SaveLeaderboardScores ()
 				{
 						List<LeaderboardScore> highScores = LoadLeaderboardScores ();
@@ -276,56 +240,7 @@ namespace AssemblyCSharp
 						}
 						return highScores;
 				}
-		
-				public void Tick ()
-				{			
-						UpdateQueuedRequests ();
-			
-						if (gameState == GameState.Paused || m_CurrentShape == null)
-								return;
-			
-						//currentShape.Tick();
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1.0f, 0);
-						if (AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
-								m_CurrentShape.PlayCollisionAudio ();
-								++m_PlacedBlockCount;
-								m_ListOfShapes.Add (m_CurrentShape);
-								AddCurrentShapeToSceneBitGrid (true);
-								m_SceneGrid.UpdateRowBytes ();
-				
-								//Handle game end condition
-								if (AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
-										UnityEngine.GameObject.Find ("background").audio.Play ();
-										EndGame ();
-										return;
-								}
-				
-								UnityEngine.Debug.Log ("Before deleting anything...");
-								m_SceneGrid.PrintBitArray ();
-				
-								//Detect full rows and delete/shift
-								List<int> fullRows = m_SceneGrid.GetFullRows (); //it'll be ordered 0 to 24
-				
-								//Delete full rows in UI and in the grid
-								foreach (int row in fullRows) {
-										foo++;
-										UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now..." + foo);
-										DeleteRowInUI (row + 1); //need to -1 because row positions for the shapes are -1 to -25, not 0 to -24, gets converted to negative in func
-										m_SceneGrid.DeleteRow (row);
-								}
-				
-								//Switch to previewed Shape and generate a new one							
-								m_CurrentShape.disablePlayerControls ();
-								m_CurrentShape = m_PreviewShape;								
-								m_CurrentShape.enablePlayerControls ();
-								m_CurrentShape.TranslateToInitialPlacement ();
-								m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
-								//myB.PrintBitArray ();
-				
-						} else {
-								m_CurrentShape.translate (movementVector);
-						}
-				}
+
 				public void AddCurrentShapeToSceneBitGrid (bool val)
 				{		
 						List<KeyValuePair<int, int>> rowCols = m_CurrentShape.GetFilledGridValues ();
