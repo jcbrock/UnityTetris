@@ -3,7 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 namespace AssemblyCSharp
 {
-		public class UnityTetris : MonoBehaviour, IInputObserver
+		public enum ChangeGameState
+		{
+				None,
+				ClearGame,
+				EndGame,
+				PauseGame,
+				ResumeGame,
+				StartGame			
+		}
+
+		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver
 		{
 				public struct UnityRequestInfo
 				{
@@ -14,15 +24,7 @@ namespace AssemblyCSharp
 								ChangeGameStateRequest
 						}
 
-						public enum ChangeGameStateTo
-						{
-								None,
-								ClearGame,
-								EndGame,
-								PauseGame,
-								ResumeGame,
-								StartGame			
-						}
+				
 			
 						//From input
 						public struct RotateShapeData
@@ -36,7 +38,7 @@ namespace AssemblyCSharp
 						//From Game State (which could come from menu too)
 						public struct ChangeGameStateData
 						{
-								public ChangeGameStateTo changeGameStateTo;
+								public ChangeGameState changeGameStateTo;
 						};
 			
 						public string debugName;
@@ -56,10 +58,12 @@ namespace AssemblyCSharp
 						Debug.Log ("Start called!");
 						sceneMgr = new AssemblyCSharp.SceneManager ();
 
-						//Register this class as an observer with the input controller
+						//Register this class as an observer with the input and menu controller
 						GameObject go = GameObject.Find ("GameObject");
 						PlayerControl inputController = (PlayerControl)go.GetComponent (typeof(PlayerControl));
-						inputController.RegisterObserver (this);
+						inputController.RegisterObserver (this);										
+						DelegateMenu menu = (DelegateMenu)go.GetComponent (typeof(DelegateMenu));
+						menu.RegisterObserver (this);
 				}
 			
 				CurrentGameState currentGameState = new CurrentGameState ();//???
@@ -132,12 +136,15 @@ namespace AssemblyCSharp
 						//	startRequest.type = SceneRequestInfo.Type.StartGame;
 						//requestQueue2.Enqueue (request);
 				}
-				public void ChangeGameState ()
+				public void ChangeGameState (ChangeGameState newState)
 				{		
-						//SceneRequestInfo startRequest;
-						//	startRequest.debugName = "start";
-						//startRequest.type = SceneRequestInfo.Type.StartGame;
-						//requestQueue2.Enqueue (request);
+						UnityTetris.UnityRequestInfo request = new UnityRequestInfo ();
+						request.debugName = "ChangeGameState";
+						request.type = UnityTetris.UnityRequestInfo.Type.ChangeGameStateRequest;
+						//request.translationData.movementVector = movementVector;
+						//request.rotationData = null;
+						request.gameStateData.changeGameStateTo = newState;
+						requestQueue.Enqueue (request);
 				}
 		
 				// Update is called once per frame
@@ -184,6 +191,11 @@ namespace AssemblyCSharp
 						if (Input.GetKeyDown (KeyCode.UpArrow)) {							
 								Rotate ();
 						}
+				}
+
+				void IMenuObserver.notify (ChangeGameState newState)
+				{					
+						ChangeGameState (newState);
 				}
 		}
 }

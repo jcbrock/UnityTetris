@@ -270,7 +270,7 @@ namespace AssemblyCSharp
 				private void HandleChangeGameStateRequest (UnityTetris.UnityRequestInfo request)
 				{
 						switch (request.gameStateData.changeGameStateTo) {
-						case UnityTetris.UnityRequestInfo.ChangeGameStateTo.ClearGame:
+						case AssemblyCSharp.ChangeGameState.ClearGame:
 								{
 										foreach (Shape s in m_ListOfShapes) {
 												s.DeleteShape ();
@@ -284,19 +284,19 @@ namespace AssemblyCSharp
 										m_PlacedBlockCount = 0;
 										break;
 								}
-						case UnityTetris.UnityRequestInfo.ChangeGameStateTo.PauseGame:
+						case AssemblyCSharp.ChangeGameState.PauseGame:
 								{
 										m_IsGamePaused = true;
 										gameState = GameState.Paused;
 										break;
 								}
-						case UnityTetris.UnityRequestInfo.ChangeGameStateTo.ResumeGame:
+						case AssemblyCSharp.ChangeGameState.ResumeGame:
 								{
 										m_IsGamePaused = false;
 										gameState = GameState.Running;
 										break;
 								}
-						case UnityTetris.UnityRequestInfo.ChangeGameStateTo.StartGame:
+						case AssemblyCSharp.ChangeGameState.StartGame:
 								{
 										m_CurrentShape = m_Factory.SpawnRandomizedTetrisShape ();
 										m_CurrentShape.TranslateToInitialPlacement ();
@@ -308,9 +308,14 @@ namespace AssemblyCSharp
 										gameState = GameState.Running;
 										break;
 								}
-						case UnityTetris.UnityRequestInfo.ChangeGameStateTo.EndGame:
-								{
-										//shouldn't happen, right? since end comes from this class?
+						case AssemblyCSharp.ChangeGameState.EndGame:
+								{										
+										if (!m_IsGameOver) {
+												SaveLeaderboardScores ();
+												m_PreviewShape.DeleteShape ();				
+												m_IsGameOver = true;								
+										}
+										gameState = GameState.Paused;
 										break;
 								}
 						}				
