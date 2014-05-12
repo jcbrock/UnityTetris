@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Linq;
 
-public class DelegateMenu : MonoBehaviour
+public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 {
 
 		private delegate void MenuDelegate ();
@@ -28,6 +28,11 @@ public class DelegateMenu : MonoBehaviour
 				buttonWidth = screenWidth * 0.4f;
 
 				menuFunction = mainMenu;
+
+				//Register with the input controller so I observer updates
+				GameObject go = GameObject.Find ("GameObject");
+				AssemblyCSharp.PlayerControl inputController = (AssemblyCSharp.PlayerControl)go.GetComponent (typeof(AssemblyCSharp.PlayerControl));
+				inputController.RegisterObserver (this);
 		}
 
 		private void OnGUI ()
@@ -104,11 +109,20 @@ public class DelegateMenu : MonoBehaviour
 				//if (AssemblyCSharp.UnityTetris.sceneMgr.IsGameOver) {
 				//		menuFunction = mainMenu;
 				//			} else 
-				if (Input.GetKeyDown (KeyCode.Escape)) {						
+				//if (Input.GetKeyDown (KeyCode.Escape)) {						
+				//		menuFunction = mainMenuWithResume;
+				//		AssemblyCSharp.UnityTetris.sceneMgr.PauseGame ();
+				//}
+				AddBlockCount ();
+				AddLeaderboard ();
+		}
+
+		void AssemblyCSharp.IInputObserver.notify (UnityEngine.KeyCode pressedKey)
+		{					
+				UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+				if (Input.GetKeyDown (KeyCode.Escape)) {
 						menuFunction = mainMenuWithResume;
 						AssemblyCSharp.UnityTetris.sceneMgr.PauseGame ();
 				}
-				AddBlockCount ();
-				AddLeaderboard ();
 		}
 }

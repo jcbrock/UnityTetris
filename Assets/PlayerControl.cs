@@ -9,29 +9,42 @@
 //------------------------------------------------------------------------------
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 namespace AssemblyCSharp
 {
 		public class PlayerControl : MonoBehaviour
 		{		
+				private List<IInputObserver> registeredObservers = new List<IInputObserver> ();
+
 				void Update ()
-				{
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+				{						
 						if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-								movementVector.x = -1.0f;
+								NotifyObservers (KeyCode.LeftArrow);
 						} else if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-								movementVector.x = 1.0f;
+								NotifyObservers (KeyCode.RightArrow);								
 						} else if (Input.GetKeyDown (KeyCode.DownArrow)) { 
-								movementVector.y = -1.0f;
-						}
-						if (movementVector.x != 0 || movementVector.y != 0) {
-								if (!UnityTetris.sceneMgr.CurrentShape.CheckCollisionWithAnyWall (movementVector) && !UnityTetris.sceneMgr.DoAnyShapesCollideInScene (movementVector))									
-										transform.Translate (movementVector, UnityEngine.Space.World);			
-						}
-			
-						if (Input.GetKeyDown (KeyCode.UpArrow)) {							
-								UnityTetris.sceneMgr.CurrentShape.Rotate ();
-						}
+								NotifyObservers (KeyCode.DownArrow);								
+						} else if (Input.GetKeyDown (KeyCode.UpArrow)) {							
+								NotifyObservers (KeyCode.UpArrow);								
+						} else if (Input.GetKeyDown (KeyCode.Escape))
+								NotifyObservers (KeyCode.Escape);								
 				}
+
+				public void RegisterObserver (IInputObserver observer)
+				{
+						registeredObservers.Add (observer);
+				}
+				public void UnregisterObserver (IInputObserver observer)
+				{
+						registeredObservers.Remove (observer);
+				}
+				private void NotifyObservers (KeyCode pressedKey)
+				{
+						foreach (IInputObserver observer in registeredObservers) {
+								observer.notify (pressedKey);
+						}
+
+				}		
 		}
 }
 
