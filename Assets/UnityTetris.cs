@@ -50,11 +50,13 @@ namespace AssemblyCSharp
 
 
 				public static AssemblyCSharp.SceneManager sceneMgr;
+				private bool freezeMode = false;
 				//private Queue<action> actionQueue = new Queue ();
 		
 				// Use this for initialization
 				void Start ()
 				{
+						Application.runInBackground = true; 
 						Debug.Log ("Start called!");
 						sceneMgr = new AssemblyCSharp.SceneManager ();
 
@@ -116,6 +118,10 @@ namespace AssemblyCSharp
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
 						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
 						request.translationData.movementVector = movementVector;
+
+						if (freezeMode)
+								request.translationData.movementVector = new Vector3 ();
+
 						requestQueue.Enqueue (request);
 				}
 				public void Rotate ()
@@ -143,7 +149,7 @@ namespace AssemblyCSharp
 
 						//eh, this depends on the frame time through, I will need to switch this to time #TODO
 						//Every so often, tick object down
-						if (frameCounter == 60) {								
+						if (frameCounter == 5) {								
 								Translate (new Vector3 (0, -1f, 0));											
 								frameCounter = 0;
 						} else {
@@ -151,6 +157,9 @@ namespace AssemblyCSharp
 						}
 				}
 
+				static int foo = 0;
+				static int roww = 0;
+				static int coll = 0;
 				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
 				{					
 						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
@@ -168,8 +177,53 @@ namespace AssemblyCSharp
 						if (Input.GetKeyDown (KeyCode.UpArrow)) {							
 								Rotate ();
 						}
-				}
 
+						if (pressedKey == KeyCode.P)
+								freezeMode = !freezeMode;
+			
+						if (pressedKey == KeyCode.O) {
+								AI aiTest = new AI ();
+								for (int i = 0; i < 24; ++i) {
+										for (int j = 0; j < 8; ++j) {
+												//int score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
+												AssemblyCSharp.ChangeThis score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, i, j); //change from being current shape to prediction...
+												if (score2.score > 0) {
+														//scores.Add (new KeyValuePair<KeyValuePair<int, int>, ChangeThis> (new KeyValuePair<int, int> (i, j), score2));
+														foo++;
+														UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + i + " Column: " + j + " Rots: " + score2.numberOfRotations);			
+												}						
+												//UnityEngine.Debug.Log (foo + "AI score of placed block: " + score);			
+										}
+								}
+						}
+
+						if (pressedKey == KeyCode.Alpha0) {
+								roww++;
+								if (roww == 24)
+										roww = 0;
+								UnityEngine.Debug.Log (foo + "roww: " + roww);
+						}
+
+						if (pressedKey == KeyCode.Minus) {
+								coll++;
+								if (coll == 8)
+										coll = 8;
+								UnityEngine.Debug.Log (foo + "coll: " + coll);
+
+						}
+
+						if (pressedKey == KeyCode.C) {
+								AI aiTest = new AI ();			
+								AssemblyCSharp.ChangeThis score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, roww, coll); //change from being current shape to prediction...
+								if (score2.score > 0) {										
+										foo++;
+										UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + roww + " Column: " + coll + " Rots: " + score2.numberOfRotations);			
+								}												
+						}
+
+
+				}
+		
 				void IMenuObserver.notify (ChangeGameState newState)
 				{					
 						ChangeGameState (newState);

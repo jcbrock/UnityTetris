@@ -61,12 +61,14 @@ namespace AssemblyCSharp
 				private System.Collections.ArrayList m_ListOfShapes = new System.Collections.ArrayList ();
 				private static int m_ColumnCount = 8; //must match the Unity grid
 				private static int m_RowCount = 24;
-				private TetrisBitArray m_SceneGrid = new TetrisBitArray (m_RowCount, m_ColumnCount);
+				public TetrisBitArray m_SceneGrid = new TetrisBitArray (m_RowCount, m_ColumnCount);
 		
 				private Queue<UnityTetris.SceneRequestInfo> requestQueue = new Queue<UnityTetris.SceneRequestInfo> ();
 				private GameState gameState;
-				private bool m_acceptingRequests = true; //once a game ends, this will be triggered to false. Must be set to true before a new game.
-
+				private bool m_acceptingRequests = true; //once a game ends, this will be triggered to false. Must be set to true before a new game.				
+				private int rowTarget = 1;
+				private int columnTarget = -1;
+				
 				public SceneManager ()
 				{
 						m_Factory = new ShapeFactory ();
@@ -111,15 +113,35 @@ namespace AssemblyCSharp
 				private void HandleTranslateRequest (UnityTetris.SceneRequestInfo request)
 				{
 						if (gameState == GameState.Paused || m_CurrentShape == null)
-								return;
-
+								return;							
+						
 						UnityEngine.Vector3 movementVector = request.translationData.movementVector;
+						if (rowTarget <= 0 && columnTarget >= 0) {
+								List<KeyValuePair<int, int>> rowCols = m_CurrentShape.GetFilledGridValues ();								
+								//if (rowTarget < rowCols [0].Key)
+								//		movementVector.y = -1;
+								if (rowTarget > rowCols [0].Key)
+										movementVector.y = 1;
+								if (columnTarget < rowCols [0].Value)
+										movementVector.x = -1;
+								if (columnTarget > rowCols [0].Value)
+										movementVector.x = 1;
+						}				
+
 						if (AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
-								m_CurrentShape.PlayCollisionAudio ();
+								//m_CurrentShape.PlayCollisionAudio ();
 								++m_PlacedBlockCount;
 								m_ListOfShapes.Add (m_CurrentShape);
+
+								AI aiTest = new AI ();
+								int score = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid); //change from being current shape to prediction...
+								foo++;
+								UnityEngine.Debug.Log (foo + "AI score of placed block: " + score);				
+
 								AddCurrentShapeToSceneBitGrid (true);
 								m_SceneGrid.UpdateRowBytes ();
+
+						
 				
 								//Handle game end condition
 								if (AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithTopWall (0, 0)) {
@@ -150,10 +172,49 @@ namespace AssemblyCSharp
 								m_CurrentShape = m_PreviewShape;																
 								m_CurrentShape.TranslateToInitialPlacement ();
 								m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
+
+								List<KeyValuePair<KeyValuePair<int, int>, ChangeThis>> scores = new List<KeyValuePair<KeyValuePair<int, int>, ChangeThis>> ();
+								AI aiTest2 = new AI ();
+								for (int i = 0; i < m_RowCount; ++i) {
+										for (int j = 0; j < m_ColumnCount; ++j) {
+												//int score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
+												AssemblyCSharp.ChangeThis score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
+												if (score2.score > 0) {
+														scores.Add (new KeyValuePair<KeyValuePair<int, int>, ChangeThis> (new KeyValuePair<int, int> (i, j), score2));
+														foo++;
+														UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + i + " Column: " + j + " Rots: " + score2.numberOfRotations);			
+												}						
+												//UnityEngine.Debug.Log (foo + "AI score of placed block: " + score);			
+										}
+								}
+					
+								int numOfRots = 0;
+								if (scores.Count > 0) {
+										int targetScore = scores.Max (x => x.Value.score);
+										List<KeyValuePair<KeyValuePair<int, int>, ChangeThis>> targets = scores.Where (x => x.Value.score == targetScore).ToList ();
+										KeyValuePair<int, int> target = new KeyValuePair<int, int> ();
+										if (targets.Count > 1) {
+												target = targets.OrderByDescending (x => x.Key.Key).First ().Key;
+												numOfRots = targets.OrderByDescending (x => x.Key.Key).First ().Value.numberOfRotations;
+										} else if (targets.Count == 1) {
+												target = targets [0].Key;
+												numOfRots = targets [0].Value.numberOfRotations;
+										} else
+												return;
+										rowTarget = target.Key * -1;
+										columnTarget = target.Value;
+										for (int rot = 0; rot < numOfRots; ++rot) {
+												m_CurrentShape.Rotate ();
+										}
+										foo++;
+										UnityEngine.Debug.Log (foo + "rowTarget: " + rowTarget + " columnTarget: " + columnTarget + " rotation: " + numOfRots);
+								}
 								//myB.PrintBitArray ();
 				
 						} else if (!AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithLeftWall (movementVector) &&
 								!AssemblyCSharp.UnityTetris.sceneMgr.m_CurrentShape.CheckCollisionWithRightWall (movementVector)) {
+
+							
 								m_CurrentShape.translate (movementVector);
 						}
 				}
