@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Linq;
+using System.IO;
 namespace AssemblyCSharp
 {
 		//TODO - break out into another file
@@ -173,41 +174,50 @@ namespace AssemblyCSharp
 								m_CurrentShape.TranslateToInitialPlacement ();
 								m_PreviewShape = m_Factory.SpawnRandomizedTetrisShape ();
 
-								List<KeyValuePair<KeyValuePair<int, int>, ChangeThis>> scores = new List<KeyValuePair<KeyValuePair<int, int>, ChangeThis>> ();
+								List<KeyValuePair<KeyValuePair<int, int>, AIPlacementEval>> scores = new List<KeyValuePair<KeyValuePair<int, int>, AIPlacementEval>> ();
+								List<AssemblyCSharp.AIPlacementEval> gridScores = new List<AIPlacementEval> ();
 								AI aiTest2 = new AI ();
 								for (int i = 0; i < m_RowCount; ++i) {
 										for (int j = 0; j < m_ColumnCount; ++j) {
-												//int score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
-												AssemblyCSharp.ChangeThis score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
-												if (score2.score > 0) {
-														scores.Add (new KeyValuePair<KeyValuePair<int, int>, ChangeThis> (new KeyValuePair<int, int> (i, j), score2));
-														foo++;
-														UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + i + " Column: " + j + " Rots: " + score2.numberOfRotations);			
-												}						
+												
+												gridScores.AddRange (aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j)); //change from being current shape to prediction...												
 												//UnityEngine.Debug.Log (foo + "AI score of placed block: " + score);			
 										}
 								}
-					
+								
+								string path = @"ai.txt";
+								File.Delete (path);
+								List<AIPlacementEval> bestMoves = gridScores.Where (x => x.status == PlacementStatus.NoCollision && x.pathClear == true).OrderByDescending (x => x.score).ToList ();
+								AIPlacementEval bestMove = null;
+								if (bestMoves.Count > 0)
+										bestMove = bestMoves.OrderBy (x => x.row).FirstOrDefault ();
+									
+								if (bestMove != null)
+										File.AppendAllText (path, "BEST MOVE: " + bestMove.print () + "\n\n");
+								else
+										File.AppendAllText (path, "No valid move found for this block!\n\n");
+				
+																							
+								foreach (AIPlacementEval placement in gridScores) {
+										File.AppendAllText (path, placement.print () + "\n");
+								}
+
+								/*
+				if (score2.score > 0) {
+					scores.Add (new KeyValuePair<KeyValuePair<int, int>, AIPlacementEval> (new KeyValuePair<int, int> (i, j), score2));
+					foo++;
+					UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + i + " Column: " + j + " Rots: " + score2.numberOfRotations + " Clear: " + score2.pathClear);			
+				}*/						
+				
 								int numOfRots = 0;
-								if (scores.Count > 0) {
-										int targetScore = scores.Max (x => x.Value.score);
-										List<KeyValuePair<KeyValuePair<int, int>, ChangeThis>> targets = scores.Where (x => x.Value.score == targetScore).ToList ();
-										KeyValuePair<int, int> target = new KeyValuePair<int, int> ();
-										if (targets.Count > 1) {
-												target = targets.OrderByDescending (x => x.Key.Key).First ().Key;
-												numOfRots = targets.OrderByDescending (x => x.Key.Key).First ().Value.numberOfRotations;
-										} else if (targets.Count == 1) {
-												target = targets [0].Key;
-												numOfRots = targets [0].Value.numberOfRotations;
-										} else
-												return;
-										rowTarget = target.Key * -1;
-										columnTarget = target.Value;
-										for (int rot = 0; rot < numOfRots; ++rot) {
+								if (bestMove != null) {
+										rowTarget = bestMove.row;
+										columnTarget = bestMove.column;
+										for (int rot = 0; rot < bestMove.numberOfRotations; ++rot) {
 												m_CurrentShape.Rotate ();
 										}
 										foo++;
-										UnityEngine.Debug.Log (foo + "rowTarget: " + rowTarget + " columnTarget: " + columnTarget + " rotation: " + numOfRots);
+										UnityEngine.Debug.Log (foo + "rowTarget: " + rowTarget + " columnTarget: " + columnTarget + " rotation: " + bestMove.numberOfRotations);
 								}
 								//myB.PrintBitArray ();
 				

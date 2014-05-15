@@ -186,12 +186,12 @@ namespace AssemblyCSharp
 								for (int i = 0; i < 24; ++i) {
 										for (int j = 0; j < 8; ++j) {
 												//int score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
-												AssemblyCSharp.ChangeThis score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, i, j); //change from being current shape to prediction...
+												/*AssemblyCSharp.AIPlacementEval score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, i, j); //change from being current shape to prediction...
 												if (score2.score > 0) {
 														//scores.Add (new KeyValuePair<KeyValuePair<int, int>, ChangeThis> (new KeyValuePair<int, int> (i, j), score2));
 														foo++;
 														UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + i + " Column: " + j + " Rots: " + score2.numberOfRotations);			
-												}						
+												}*/						
 												//UnityEngine.Debug.Log (foo + "AI score of placed block: " + score);			
 										}
 								}
@@ -214,11 +214,11 @@ namespace AssemblyCSharp
 
 						if (pressedKey == KeyCode.C) {
 								AI aiTest = new AI ();			
-								AssemblyCSharp.ChangeThis score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, roww, coll); //change from being current shape to prediction...
+								/*AssemblyCSharp.AIPlacementEval score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, roww, coll); //change from being current shape to prediction...
 								if (score2.score > 0) {										
 										foo++;
 										UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + roww + " Column: " + coll + " Rots: " + score2.numberOfRotations);			
-								}												
+								}*/												
 						}
 
 

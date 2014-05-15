@@ -19,6 +19,7 @@ namespace AssemblyCSharp
 		{
 				private List<UnityEngine.GameObject> m_PossibleGameObjectsForShapes = new List<UnityEngine.GameObject> ();
 				private int m_DebugCounter = 0;
+				private int debugger = 0;
 				
 				public ShapeFactory ()
 				{
@@ -37,10 +38,27 @@ namespace AssemblyCSharp
 						if (randomShape == TetrisShape.unknown)
 								throw new System.Exception ("unknown tetris shape generated!");
 
+		
+
 						float xStart = UnityEngine.Random.Range (2, 7); //10 = length of tetris board (x)
 						xStart -= (float)0.5;
 						int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
 						UnityEngine.Vector3 temp = new UnityEngine.Vector3 (-5.0f, (float)-0.5, 0);
+
+						if (debugger == 0) {
+								randomShape = TetrisShape.tShape;
+								rotation = 0;
+								xStart = 5.5f;
+								
+						}
+
+						if (debugger == 1) {
+								randomShape = TetrisShape.zShapeLeft;
+								rotation = 0;
+								xStart = 1.5f;					
+						}
+						debugger++;
+
 
 						Shape newShape = new Shape (SpawnNewBlock (m_PossibleGameObjectsForShapes [(int)randomShape], temp), ConvertBlockToRotationStyle (randomShape), xStart); //eventually replace with random shape...;
 						for (int i = 0; i < rotation; ++i) {
