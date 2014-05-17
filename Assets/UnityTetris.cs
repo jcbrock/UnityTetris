@@ -16,7 +16,7 @@ namespace AssemblyCSharp
 		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver
 		{
 				//Apparently Structs are more different than classes in C# than they are in C++
-				//Yet, their member variables default to private like classes do, (which is different than c++)		
+				//Their member variables default to private like classes do, (which is different than c++)		
 
 				public struct SceneRequestInfo
 				{
@@ -53,12 +53,10 @@ namespace AssemblyCSharp
 				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();				
 				private bool AIModeTurnedOn = false;
 				private bool freezeMode = false; //debug mode variable
-		
-				// Use this for initialization
+						
 				void Start ()
 				{
-						Application.runInBackground = true; 
-						Debug.Log ("Start called!");
+						Application.runInBackground = true; 						
 						sceneMgr = new AssemblyCSharp.SceneManager ();
 
 						//Register this class as an observer with the input and menu controller
@@ -69,11 +67,41 @@ namespace AssemblyCSharp
 						menu.RegisterObserver (this);
 				}										
 
+				
+				public void Translate (Vector3 movementVector)
+				{		
+						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
+						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
+						request.translationData.movementVector = movementVector;
+						request.AIModeOn = AIModeTurnedOn;
+
+						if (freezeMode)
+								request.translationData.movementVector = new Vector3 ();
+
+						requestQueue.Enqueue (request);
+				}
+				public void Rotate ()
+				{		
+						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
+						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;						
+						request.AIModeOn = AIModeTurnedOn;
+						//request.rotationData = null;						
+						requestQueue.Enqueue (request);
+				}
+				public void ChangeGameState (ChangeGameState newState)
+				{		
+						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
+						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;											
+						request.gameStateData.changeGameStateTo = newState;
+						request.AIModeOn = AIModeTurnedOn;
+						requestQueue.Enqueue (request);
+				}
+
 				private void UpdateQueuedRequests ()
 				{						
 						if (requestQueue.Count == 0)
 								return;
-									
+			
 						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
 			
 						switch (request.type) {
@@ -112,35 +140,7 @@ namespace AssemblyCSharp
 						sceneMgr.SendSceneRequest (request);
 				}
 
-				public void Translate (Vector3 movementVector)
-				{		
-						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
-						request.translationData.movementVector = movementVector;
-						request.AIModeOn = AIModeTurnedOn;
-
-						if (freezeMode)
-								request.translationData.movementVector = new Vector3 ();
-
-						requestQueue.Enqueue (request);
-				}
-				public void Rotate ()
-				{		
-						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;						
-						request.AIModeOn = AIModeTurnedOn;
-						//request.rotationData = null;						
-						requestQueue.Enqueue (request);
-				}
-				public void ChangeGameState (ChangeGameState newState)
-				{		
-						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;											
-						request.gameStateData.changeGameStateTo = newState;
-						request.AIModeOn = AIModeTurnedOn;
-						requestQueue.Enqueue (request);
-				}
-						
+		
 				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
 				{					
 						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);

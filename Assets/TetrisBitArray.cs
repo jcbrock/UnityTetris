@@ -19,53 +19,58 @@ namespace AssemblyCSharp
 		// - updating internal bit array
 		public class TetrisBitArray
 		{
-				private BitArray m_BitArray;
-				public byte[] m_RowBytes;
-				private int m_RowCount;
-				private int m_ColumnCount;
+				private BitArray mBitArray;
+				public byte[] mRowBytes;
+				private int mRowCount;
+				private int mColumnCount;
 				private TetrisBitArray ()
 				{
 				}
 				public TetrisBitArray (int rowCount, int columnCount)
 				{
-						m_BitArray = new BitArray (rowCount * columnCount);
-						m_RowCount = rowCount;
-						m_ColumnCount = columnCount;
-						m_RowBytes = new byte[rowCount];//assuming 1 row = 8 bytes 
-				}
+						mBitArray = new BitArray (rowCount * columnCount);
+						mRowCount = rowCount;
+						mColumnCount = columnCount;
+						mRowBytes = new byte[rowCount];//assuming 1 row = 8 bytes 
 
+				}
+			
 				public int GetRowCount ()
 				{
-						return m_RowCount;
+						return mRowCount;
 				}
 				public int GetColumnCount ()
 				{
-						return m_ColumnCount;
+						return mColumnCount;
+				}
+				public void ClearGrid ()
+				{
+						mBitArray.SetAll (false);
 				}
 
 				public bool this [int rowIndex, int columnIndex] {
 						get {
 								rowIndex = Math.Abs (rowIndex);
-								if (rowIndex < 0 || rowIndex >= m_RowCount)
+								if (rowIndex < 0 || rowIndex >= mRowCount)
 										throw new ArgumentOutOfRangeException ("rowIndex");
 				
-								if (columnIndex < 0 || columnIndex >= m_ColumnCount)
+								if (columnIndex < 0 || columnIndex >= mColumnCount)
 										throw new ArgumentOutOfRangeException ("columnIndex");
 				
-								int pos = rowIndex * m_ColumnCount + columnIndex;
-								return m_BitArray [pos];
+								int pos = rowIndex * mColumnCount + columnIndex;
+								return mBitArray [pos];
 						}
 						set {
 								rowIndex = Math.Abs (rowIndex);
-								if (rowIndex < 0 || rowIndex >= m_RowCount)
+								if (rowIndex < 0 || rowIndex >= mRowCount)
 										throw new ArgumentOutOfRangeException ("rowIndex");
 				
-								if (columnIndex < 0 || columnIndex >= m_ColumnCount)
+								if (columnIndex < 0 || columnIndex >= mColumnCount)
 										throw new ArgumentOutOfRangeException ("columnIndex");
 				
-								int pos = rowIndex * m_ColumnCount + columnIndex;
+								int pos = rowIndex * mColumnCount + columnIndex;
 				
-								m_BitArray [pos] = value;
+								mBitArray [pos] = value;
 						}
 				}
 		
@@ -74,13 +79,13 @@ namespace AssemblyCSharp
 						List<int> fullRows = new List<int> ();
 			
 						//Check for full rows using bit masks
-						for (int i = 0; i < m_RowCount; ++i) {
-								TetrisBitArray fullRowMask = new TetrisBitArray (m_RowCount, m_ColumnCount);
-								fullRowMask.m_RowBytes [i] = Byte.MaxValue;
+						for (int i = 0; i < mRowCount; ++i) {
+								TetrisBitArray fullRowMask = new TetrisBitArray (mRowCount, mColumnCount);
+								fullRowMask.mRowBytes [i] = Byte.MaxValue;
 								fullRowMask.UpdateBitArrayBasedOnRowBytes ();				
-								BitArray clone = (BitArray)this.m_BitArray.Clone (); //need to close because AND will modify left-hand arg
+								BitArray clone = (BitArray)this.mBitArray.Clone (); //need to close because AND will modify left-hand arg
 				
-								if (fullRowMask.Equals (clone.And (fullRowMask.m_BitArray)))
+								if (fullRowMask.Equals (clone.And (fullRowMask.mBitArray)))
 										fullRows.Add (i);
 						}
 			
@@ -89,12 +94,12 @@ namespace AssemblyCSharp
 		
 				public bool Equals (BitArray b)
 				{
-						if (this.m_BitArray.Count != b.Count)
+						if (this.mBitArray.Count != b.Count)
 								throw new ArgumentException ("Can't compare BitArrays of different length");
 			
 						//Not a good way to compare equality of bit arrays in C#
 						//At least this does 32 times less compares than comparing bit by
-						int[] ints1 = ConvertToInts (this.m_BitArray);
+						int[] ints1 = ConvertToInts (this.mBitArray);
 						int[] ints2 = ConvertToInts (b);
 						for (int i = 0; i < ints1.Length; ++i)
 								if (ints1 [i] != ints2 [i])
@@ -119,16 +124,16 @@ namespace AssemblyCSharp
 		
 				public void UpdateRowBytes ()
 				{
-						if (m_BitArray.Count != 192) {
+						if (mBitArray.Count != 192) {
 								throw new ArgumentException ("# of bits is wrong for row bytes");
 						}
 						//byte[] bytes = new byte[24];
-						m_BitArray.CopyTo (m_RowBytes, 0);
+						mBitArray.CopyTo (mRowBytes, 0);
 						//return bytes;
 				}
 				public void UpdateBitArrayBasedOnRowBytes ()
 				{
-						m_BitArray = new BitArray (m_RowBytes);
+						mBitArray = new BitArray (mRowBytes);
 				}
 		
 		
@@ -136,13 +141,13 @@ namespace AssemblyCSharp
 				{
 						string output = string.Empty;
 			
-						for (int i = 0; i < m_RowCount; ++i) {
+						for (int i = 0; i < mRowCount; ++i) {
 								string space = " ";
 								if (i < 10)
 										space = "  ";
 				
 								output += Environment.NewLine + "Row " + i + space;
-								for (int j = 0; j < m_ColumnCount; ++j) {
+								for (int j = 0; j < mColumnCount; ++j) {
 										output += Convert.ToInt32 (this [i, j]) + " ";								
 								}								
 						}
@@ -158,15 +163,15 @@ namespace AssemblyCSharp
 			
 						//row 0 = top row
 						//row 23 = bot row
-						BitArray x = (BitArray)this.m_BitArray.Clone ();
-						BitArray yBot = new BitArray (m_ColumnCount * m_RowCount);
-						for (int i = ((row + 1) * m_ColumnCount); i < (m_RowCount * m_ColumnCount); ++i) { //yBot = everything below full row, hence -1
+						BitArray x = (BitArray)this.mBitArray.Clone ();
+						BitArray yBot = new BitArray (mColumnCount * mRowCount);
+						for (int i = ((row + 1) * mColumnCount); i < (mRowCount * mColumnCount); ++i) { //yBot = everything below full row, hence -1
 								yBot [i] = true; //-192 > -192
 								//-184 > -192, -185 > -192, -186 > 192
 						}
 			
 						//Debug - print stuff
-						TetrisBitArray p2 = new TetrisBitArray (m_RowCount, m_ColumnCount);
+						TetrisBitArray p2 = new TetrisBitArray (mRowCount, mColumnCount);
 						/*p2.m_data = yBot;
 			++foo;
 			UnityEngine.Debug.Log ("yBot" + foo);
@@ -178,10 +183,10 @@ namespace AssemblyCSharp
 						//shift - CAN'T do via mask because I don't have one consecutive array of bits in C#.
 						//They are split up across ints, which makes shifting a bitch - I still have to copy between ints
 						//(last part of int to first part of next int...), so it is easier just to use byte array.
-						for (int i = m_RowCount -1; i > 0; --i) {
-								this.m_RowBytes [i] = this.m_RowBytes [i - 1];
+						for (int i = mRowCount -1; i > 0; --i) {
+								this.mRowBytes [i] = this.mRowBytes [i - 1];
 						}
-						this.m_RowBytes [0] = 0;
+						this.mRowBytes [0] = 0;
 						this.UpdateBitArrayBasedOnRowBytes ();
 			
 						//Debug print stuff
@@ -189,8 +194,8 @@ namespace AssemblyCSharp
 						UnityEngine.Debug.Log ("After shift" + foo);
 						this.PrintBitArray ();
 			
-						BitArray yTop = new BitArray (m_ColumnCount * m_RowCount);
-						for (int i = (((row +1) * m_ColumnCount)-1); i >= 0; --i) { //includes the full row, hence the -1 (+1 is for 0-191, not 1-192)
+						BitArray yTop = new BitArray (mColumnCount * mRowCount);
+						for (int i = (((row +1) * mColumnCount)-1); i >= 0; --i) { //includes the full row, hence the -1 (+1 is for 0-191, not 1-192)
 								yTop [i] = true;
 						}
 						/*++foo;
@@ -205,10 +210,10 @@ namespace AssemblyCSharp
 						++foo;
 						UnityEngine.Debug.Log ("Answer" + foo);
 			
-						TetrisBitArray ans = new TetrisBitArray (m_RowCount, m_ColumnCount);
-						ans.m_BitArray = (x.And (yBot)).Or (this.m_BitArray.And (yTop)); //Take bottom or original grid, add it to the top of the shifted down grid
+						TetrisBitArray ans = new TetrisBitArray (mRowCount, mColumnCount);
+						ans.mBitArray = (x.And (yBot)).Or (this.mBitArray.And (yTop)); //Take bottom or original grid, add it to the top of the shifted down grid
 						ans.PrintBitArray ();
-						this.m_BitArray = ans.m_BitArray;
+						this.mBitArray = ans.mBitArray;
 				}	
 		}
 }
