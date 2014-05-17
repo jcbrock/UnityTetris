@@ -54,42 +54,35 @@ namespace AssemblyCSharp
 
 		public class AI
 		{
-				private const int m_RowCount = 24;
-				private const int m_ColumnCount = 8;
-	
-				//my heurestic - forget rotation for now
-				public	int ComputeScore (Shape s, TetrisBitArray m_SceneGrid)
+				public AIPlacementEval GetBestMove (Shape s, TetrisBitArray sceneGrid)
 				{
-						List<KeyValuePair<int, int>> rowCols = s.GetFilledGridValues ();
-						foreach (KeyValuePair<int,int> rowCol in rowCols) {
-								if (m_SceneGrid [rowCol.Key, rowCol.Value] == true) {
-										return -1;
+						List<AssemblyCSharp.AIPlacementEval> gridScores = new List<AIPlacementEval> ();
+						for (int i = 0; i < sceneGrid.GetRowCount(); ++i) {
+								for (int j = 0; j < sceneGrid.GetColumnCount(); ++j) {					
+										gridScores.AddRange (ComputeScore (s, sceneGrid, i, j)); //change from being current shape to prediction...															
 								}
+						}
+									
+						List<AIPlacementEval> bestMoves = gridScores.Where (x => x.status == PlacementStatus.NoCollision && x.pathClear == true).OrderByDescending (x => x.score).ToList ();
+						AIPlacementEval bestMove = null;
+						if (bestMoves.Count > 0)
+								bestMove = bestMoves.OrderBy (x => x.row).FirstOrDefault ();
+
+						//DEBUG PRINTING
+						string path = @"ai.txt";
+						File.Delete (path);
+						if (bestMove != null)
+								File.AppendAllText (path, "BEST MOVE: " + bestMove.print () + "\n\n");
+						else
+								File.AppendAllText (path, "No valid move found for this block!\n\n");
+			
+			
+						foreach (AIPlacementEval placement in gridScores) {
+								File.AppendAllText (path, placement.print () + "\n");
 						}
 
-						//Compute score - for now, count neighbors
-						int neighborCount = 0;
-						foreach (KeyValuePair<int,int> rowCol in rowCols) {
-								int right = rowCol.Value + 1;
-								int left = rowCol.Value - 1;
-								int up = rowCol.Key + 1;
-								int down = rowCol.Key - 1;
-								if (up <= 0 && m_SceneGrid [up, rowCol.Value] == true) {
-										++neighborCount;
-								}
-								if (right < 8 && m_SceneGrid [rowCol.Key, right] == true) {
-										++neighborCount;
-								}
-								if ((down > -24 && m_SceneGrid [down, rowCol.Value] == true) || down == -24) {
-										++neighborCount;
-								}
-								if (left >= 0 && m_SceneGrid [rowCol.Key, left] == true) {
-										++neighborCount;
-								}
-						}
-						return neighborCount;
+						return bestMove;
 				}
-		
 			
 				//ok, this shifting must be done an easier way...
 				static int foo = 0;
@@ -115,7 +108,7 @@ namespace AssemblyCSharp
 								List<KeyValuePair<int, int>> rowCols = s.GetFilledGridValues ();
 								int shiftRow = rowTarget - rowCols [0].Key;
 								int shiftCol = columnTarget - rowCols [0].Value;
-								s.ShadeSubBlock (0);
+								//s.ShadeSubBlock (0);
 
 
 								List<KeyValuePair<int, int>> newRowCols = new List<KeyValuePair<int, int>> ();
@@ -133,11 +126,6 @@ namespace AssemblyCSharp
 														status = PlacementStatus.CollidedWithWallAndShape;
 												else if (status == PlacementStatus.None)
 														status = PlacementStatus.CollidedWithWall;
-												//return -1;
-												//	ChangeThis returnthis = new ChangeThis ();
-												//	returnthis.numberOfRotations = 0;
-												//	returnthis.score = -1;
-												//	return returnthis;
 										} else if (m_SceneGrid [rowCol.Key, rowCol.Value] == true) {
 												collisionDetected = true;		
 												scores [rot].debug = "Row= " + rowCol.Key + " Col= " + rowCol.Value + " shiftRow = " + shiftRow + " shiftCol=" + shiftCol; 
@@ -148,49 +136,42 @@ namespace AssemblyCSharp
 														status = PlacementStatus.CollidedWithShape;
 										}
 								}
-								//	if (shouldContinue) {
-								//			s.Rotate ();
-								//			rotatedTimes++;
-								//			continue;
-										
-								//	}
-				
+							
 								//todo - damn, I don't detect if the piece can "rest" at that spot. oh well... cna do that later... it'll just reach that spot, then continue falling.
 								bool pathIsCleared = true;
 								int neighborCount = -1;
 								if (!collisionDetected) {
 										//Compute score - for now, count neighbors
-										status = PlacementStatus.NoCollision;
-										int botCount = 0;
-										neighborCount = 0;
+										status = PlacementStatus.NoCollision;										
+										neighborCount = 0;										
 										foreach (KeyValuePair<int,int> rowCol in newRowCols) {
 												int right = rowCol.Value + 1;
 												int left = rowCol.Value - 1;
 												int up = rowCol.Key + 1;
-												int down = rowCol.Key - 1;
-												scores [rot].root += "(" + rowCol.Key + "," + rowCol.Value + ")";
+												int down = rowCol.Key - 1;												
 												if (up <= 0 && m_SceneGrid [up, rowCol.Value] == true) {
 														++neighborCount;
 												}
 												if (right < 8)
 														scores [rot].root += m_SceneGrid [rowCol.Key, right].ToString ();
 												if (right < 8 && m_SceneGrid [rowCol.Key, right] == true) {
-														++neighborCount;
-														scores [rot].debug += "Added for right"; 
+														++neighborCount;														
 												}
 												if (down > -24 && m_SceneGrid [down, rowCol.Value] == true) {
 														++neighborCount;
 												}
-												if (down == -24) {
-														++neighborCount;
-														botCount++;
-														scores [rot].debug += "Added " + botCount + " for bottom"; 
+												if (down > -24 && m_SceneGrid [down, rowCol.Value] == false && newRowCols.Count (x => x.Key == down && x.Value == rowCol.Value) == 0) {
+														--neighborCount; //removing a point for covering up a hole, including those created by the shape, think upside down L
 												}
+												if (down == -24) {
+														++neighborCount;																											
+												}
+
 												if (left >= 0 && m_SceneGrid [rowCol.Key, left] == true) {
 														++neighborCount;
 												}
+										
 										}
-
 								
 										rowTarget = Mathf.Abs (rowTarget) * -1;
 										if (rowTarget > 0)
@@ -203,8 +184,7 @@ namespace AssemblyCSharp
 														}
 												}
 										}
-								}
-								//log.AppendLine ("Valid placement! Score: " + neighborCount + " IsPathClear: " + pathIsCleared);
+								}								
 								scores [rot].pathClear = pathIsCleared;
 								scores [rot].numberOfRotations = rot;
 								scores [rot].score = neighborCount;
@@ -212,29 +192,9 @@ namespace AssemblyCSharp
 								scores [rot].column = columnTarget;
 								scores [rot].status = status;
 								rotatedTimes++;
-								s.Rotate ();
-								//			return neighborCount;
+								s.Rotate ();								
 						}
 
-
-
-
-						/*	AIPlacementEval answer = scores.Where (x => x.pathClear).OrderByDescending (x => x.score).FirstOrDefault ();
-						if (answer == null) {
-								UnityEngine.Debug.LogWarning ("ERROR - this should not occur ever In AI.cs");
-								AIPlacementEval returnthis = new AIPlacementEval ();
-								returnthis.numberOfRotations = 0;
-								returnthis.score = -1;
-								return returnthis;
-						}*/
-
-						//log.AppendLine ("Returning highest score for this target. Score: " + answer.score + " Rotations: " + answer.numberOfRotations);
-
-						//get back to normal orientation
-						foo++;
-						//	UnityEngine.Debug.Log (foo + "rotatedTimes: " + rotatedTimes);
-						//UnityEngine.Debug.Log ("rotatedTimes: " + rotatedTimes);
-						//int score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
 						string path = @"log.txt";									
 						if (!File.Exists (path)) {															
 								File.WriteAllText (path, log.ToString ());

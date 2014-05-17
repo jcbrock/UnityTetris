@@ -36,8 +36,9 @@ namespace AssemblyCSharp
 								NotifyObservers (KeyCode.Minus);	
 						} else if (Input.GetKeyDown (KeyCode.C)) {
 								NotifyObservers (KeyCode.C);	
+						} else if (Input.GetKeyDown (KeyCode.A)) {
+								NotifyObservers (KeyCode.A);
 						}
-			
 				}
 
 				public void RegisterObserver (IInputObserver observer)
@@ -53,7 +54,6 @@ namespace AssemblyCSharp
 						foreach (IInputObserver observer in registeredObservers) {
 								observer.notify (pressedKey);
 						}
-
 				}		
 		}
 }

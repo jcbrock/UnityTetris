@@ -46,12 +46,13 @@ namespace AssemblyCSharp
 						public	RotateShapeData rotationData;			
 						public	TranslateShapeData translationData;
 						public ChangeGameStateData gameStateData;
+						public bool AIModeOn;
 				}
-
-
+		
 				public static AssemblyCSharp.SceneManager sceneMgr;
-				private bool freezeMode = false;
-				//private Queue<action> actionQueue = new Queue ();
+				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();				
+				private bool AIModeTurnedOn = false;
+				private bool freezeMode = false; //debug mode variable
 		
 				// Use this for initialization
 				void Start ()
@@ -66,16 +67,13 @@ namespace AssemblyCSharp
 						inputController.RegisterObserver (this);										
 						DelegateMenu menu = (DelegateMenu)go.GetComponent (typeof(DelegateMenu));
 						menu.RegisterObserver (this);
-				}
-							
-				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();
+				}										
 
 				private void UpdateQueuedRequests ()
 				{						
 						if (requestQueue.Count == 0)
 								return;
-			
-						//pop request
+									
 						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
 			
 						switch (request.type) {
@@ -113,11 +111,13 @@ namespace AssemblyCSharp
 				{						
 						sceneMgr.SendSceneRequest (request);
 				}
+
 				public void Translate (Vector3 movementVector)
 				{		
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
 						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
 						request.translationData.movementVector = movementVector;
+						request.AIModeOn = AIModeTurnedOn;
 
 						if (freezeMode)
 								request.translationData.movementVector = new Vector3 ();
@@ -128,6 +128,7 @@ namespace AssemblyCSharp
 				{		
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
 						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;						
+						request.AIModeOn = AIModeTurnedOn;
 						//request.rotationData = null;						
 						requestQueue.Enqueue (request);
 				}
@@ -136,17 +137,46 @@ namespace AssemblyCSharp
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
 						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;											
 						request.gameStateData.changeGameStateTo = newState;
+						request.AIModeOn = AIModeTurnedOn;
 						requestQueue.Enqueue (request);
 				}
+						
+				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
+				{					
+						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+						if (pressedKey == KeyCode.LeftArrow) {
+								movementVector.x = -1.0f;
+						} else if (pressedKey == KeyCode.RightArrow) { 
+								movementVector.x = 1.0f;
+						} else if (pressedKey == KeyCode.DownArrow) { 
+								movementVector.y = -1.0f;
+						}
+						if (movementVector.x != 0 || movementVector.y != 0) {
+								Translate (movementVector);
+						}			
+						if (pressedKey == KeyCode.UpArrow) {							
+								Rotate ();
+						}
+						if (pressedKey == KeyCode.P)
+								freezeMode = !freezeMode;
+						if (pressedKey == KeyCode.A) {
+								AIModeTurnedOn = !AIModeTurnedOn;
+								UnityEngine.Debug.Log ("AI mode turned on: " + AIModeTurnedOn.ToString ());
+						}
+				}
 		
+				void IMenuObserver.notify (ChangeGameState newState)
+				{					
+						ChangeGameState (newState);
+				}
+
 				// Update is called once per frame
 				int frameCounter = 0;
 				void Update ()
 				{						
 						UpdateQueuedRequests ();
 						sceneMgr.UpdateQueuedRequests ();
-				
-
+						
 						//eh, this depends on the frame time through, I will need to switch this to time #TODO
 						//Every so often, tick object down
 						if (frameCounter == 5) {								
@@ -155,78 +185,6 @@ namespace AssemblyCSharp
 						} else {
 								frameCounter++;
 						}
-				}
-
-				static int foo = 0;
-				static int roww = 0;
-				static int coll = 0;
-				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
-				{					
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
-						if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-								movementVector.x = -1.0f;
-						} else if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-								movementVector.x = 1.0f;
-						} else if (Input.GetKeyDown (KeyCode.DownArrow)) { 
-								movementVector.y = -1.0f;
-						}
-						if (movementVector.x != 0 || movementVector.y != 0) {
-								Translate (movementVector);
-						}
-			
-						if (Input.GetKeyDown (KeyCode.UpArrow)) {							
-								Rotate ();
-						}
-
-						if (pressedKey == KeyCode.P)
-								freezeMode = !freezeMode;
-			
-						if (pressedKey == KeyCode.O) {
-								AI aiTest = new AI ();
-								for (int i = 0; i < 24; ++i) {
-										for (int j = 0; j < 8; ++j) {
-												//int score2 = aiTest.ComputeScore (m_CurrentShape, m_SceneGrid, i, j); //change from being current shape to prediction...
-												/*AssemblyCSharp.AIPlacementEval score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, i, j); //change from being current shape to prediction...
-												if (score2.score > 0) {
-														//scores.Add (new KeyValuePair<KeyValuePair<int, int>, ChangeThis> (new KeyValuePair<int, int> (i, j), score2));
-														foo++;
-														UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + i + " Column: " + j + " Rots: " + score2.numberOfRotations);			
-												}*/						
-												//UnityEngine.Debug.Log (foo + "AI score of placed block: " + score);			
-										}
-								}
-						}
-
-						if (pressedKey == KeyCode.Alpha0) {
-								roww++;
-								if (roww == 24)
-										roww = 0;
-								UnityEngine.Debug.Log (foo + "roww: " + roww);
-						}
-
-						if (pressedKey == KeyCode.Minus) {
-								coll++;
-								if (coll == 8)
-										coll = 8;
-								UnityEngine.Debug.Log (foo + "coll: " + coll);
-
-						}
-
-						if (pressedKey == KeyCode.C) {
-								AI aiTest = new AI ();			
-								/*AssemblyCSharp.AIPlacementEval score2 = aiTest.ComputeScore (sceneMgr.CurrentShape, sceneMgr.m_SceneGrid, roww, coll); //change from being current shape to prediction...
-								if (score2.score > 0) {										
-										foo++;
-										UnityEngine.Debug.Log (foo + "Non zero AI score found: " + score2.score + " Row: " + roww + " Column: " + coll + " Rots: " + score2.numberOfRotations);			
-								}*/												
-						}
-
-
-				}
-		
-				void IMenuObserver.notify (ChangeGameState newState)
-				{					
-						ChangeGameState (newState);
 				}
 		}
 }

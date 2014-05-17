@@ -33,7 +33,16 @@ namespace AssemblyCSharp
 						m_ColumnCount = columnCount;
 						m_RowBytes = new byte[rowCount];//assuming 1 row = 8 bytes 
 				}
-		
+
+				public int GetRowCount ()
+				{
+						return m_RowCount;
+				}
+				public int GetColumnCount ()
+				{
+						return m_ColumnCount;
+				}
+
 				public bool this [int rowIndex, int columnIndex] {
 						get {
 								rowIndex = Math.Abs (rowIndex);
