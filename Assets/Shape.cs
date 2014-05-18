@@ -48,6 +48,15 @@ namespace AssemblyCSharp
 						m_RotationStyle = rotationStyle;
 				}
 
+				//debug func
+				public void ShadeSubBlock (int blockIndex)
+				{
+						if (m_CompositeGameObject.transform.childCount > blockIndex) {
+								m_CompositeGameObject.transform.GetChild (blockIndex).GetComponent<UnityEngine.SpriteRenderer> ().color = UnityEngine.Color.magenta;
+						}		
+				}
+		
+		
 				//cleans up UI of shape
 				public void DeleteShape ()
 				{

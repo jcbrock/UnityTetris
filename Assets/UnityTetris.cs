@@ -16,7 +16,7 @@ namespace AssemblyCSharp
 		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver
 		{
 				//Apparently Structs are more different than classes in C# than they are in C++
-				//Yet, their member variables default to private like classes do, (which is different than c++)		
+				//Their member variables default to private like classes do, (which is different than c++)		
 
 				public struct SceneRequestInfo
 				{
@@ -46,16 +46,17 @@ namespace AssemblyCSharp
 						public	RotateShapeData rotationData;			
 						public	TranslateShapeData translationData;
 						public ChangeGameStateData gameStateData;
+						public bool AIModeOn;
 				}
-
-
-				public static AssemblyCSharp.SceneManager sceneMgr;
-				//private Queue<action> actionQueue = new Queue ();
 		
-				// Use this for initialization
+				public static AssemblyCSharp.SceneManager sceneMgr;
+				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();				
+				private bool AIModeTurnedOn = false;
+				private bool freezeMode = false; //debug mode variable
+						
 				void Start ()
 				{
-						Debug.Log ("Start called!");
+						Application.runInBackground = true; 						
 						sceneMgr = new AssemblyCSharp.SceneManager ();
 
 						//Register this class as an observer with the input and menu controller
@@ -64,16 +65,43 @@ namespace AssemblyCSharp
 						inputController.RegisterObserver (this);										
 						DelegateMenu menu = (DelegateMenu)go.GetComponent (typeof(DelegateMenu));
 						menu.RegisterObserver (this);
+				}										
+
+				
+				public void Translate (Vector3 movementVector)
+				{		
+						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
+						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
+						request.translationData.movementVector = movementVector;
+						request.AIModeOn = AIModeTurnedOn;
+
+						if (freezeMode)
+								request.translationData.movementVector = new Vector3 ();
+
+						requestQueue.Enqueue (request);
 				}
-							
-				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();
+				public void Rotate ()
+				{		
+						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
+						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;						
+						request.AIModeOn = AIModeTurnedOn;
+						//request.rotationData = null;						
+						requestQueue.Enqueue (request);
+				}
+				public void ChangeGameState (ChangeGameState newState)
+				{		
+						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
+						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;											
+						request.gameStateData.changeGameStateTo = newState;
+						request.AIModeOn = AIModeTurnedOn;
+						requestQueue.Enqueue (request);
+				}
 
 				private void UpdateQueuedRequests ()
 				{						
 						if (requestQueue.Count == 0)
 								return;
 			
-						//pop request
 						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
 			
 						switch (request.type) {
@@ -111,68 +139,52 @@ namespace AssemblyCSharp
 				{						
 						sceneMgr.SendSceneRequest (request);
 				}
-				public void Translate (Vector3 movementVector)
-				{		
-						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
-						request.translationData.movementVector = movementVector;
-						requestQueue.Enqueue (request);
-				}
-				public void Rotate ()
-				{		
-						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;						
-						//request.rotationData = null;						
-						requestQueue.Enqueue (request);
-				}
-				public void ChangeGameState (ChangeGameState newState)
-				{		
-						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;											
-						request.gameStateData.changeGameStateTo = newState;
-						requestQueue.Enqueue (request);
+
+		
+				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
+				{					
+						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+						if (pressedKey == KeyCode.LeftArrow) {
+								movementVector.x = -1.0f;
+						} else if (pressedKey == KeyCode.RightArrow) { 
+								movementVector.x = 1.0f;
+						} else if (pressedKey == KeyCode.DownArrow) { 
+								movementVector.y = -1.0f;
+						}
+						if (movementVector.x != 0 || movementVector.y != 0) {
+								Translate (movementVector);
+						}			
+						if (pressedKey == KeyCode.UpArrow) {							
+								Rotate ();
+						}
+						if (pressedKey == KeyCode.P)
+								freezeMode = !freezeMode;
+						if (pressedKey == KeyCode.A) {
+								AIModeTurnedOn = !AIModeTurnedOn;
+								UnityEngine.Debug.Log ("AI mode turned on: " + AIModeTurnedOn.ToString ());
+						}
 				}
 		
+				void IMenuObserver.notify (ChangeGameState newState)
+				{					
+						ChangeGameState (newState);
+				}
+
 				// Update is called once per frame
 				int frameCounter = 0;
 				void Update ()
 				{						
 						UpdateQueuedRequests ();
 						sceneMgr.UpdateQueuedRequests ();
-				
-
+						
 						//eh, this depends on the frame time through, I will need to switch this to time #TODO
 						//Every so often, tick object down
-						if (frameCounter == 60) {								
+						if (frameCounter == 5) {								
 								Translate (new Vector3 (0, -1f, 0));											
 								frameCounter = 0;
 						} else {
 								frameCounter++;
 						}
-				}
-
-				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
-				{					
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
-						if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-								movementVector.x = -1.0f;
-						} else if (Input.GetKeyDown (KeyCode.RightArrow)) { 
-								movementVector.x = 1.0f;
-						} else if (Input.GetKeyDown (KeyCode.DownArrow)) { 
-								movementVector.y = -1.0f;
-						}
-						if (movementVector.x != 0 || movementVector.y != 0) {
-								Translate (movementVector);
-						}
-			
-						if (Input.GetKeyDown (KeyCode.UpArrow)) {							
-								Rotate ();
-						}
-				}
-
-				void IMenuObserver.notify (ChangeGameState newState)
-				{					
-						ChangeGameState (newState);
 				}
 		}
 }

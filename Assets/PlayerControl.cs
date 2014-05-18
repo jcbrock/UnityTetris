@@ -26,8 +26,19 @@ namespace AssemblyCSharp
 								NotifyObservers (KeyCode.DownArrow);								
 						} else if (Input.GetKeyDown (KeyCode.UpArrow)) {							
 								NotifyObservers (KeyCode.UpArrow);								
-						} else if (Input.GetKeyDown (KeyCode.Escape))
+						} else if (Input.GetKeyDown (KeyCode.Escape)) {
 								NotifyObservers (KeyCode.Escape);								
+						} else if (Input.GetKeyDown (KeyCode.P)) {
+								NotifyObservers (KeyCode.P);	
+						} else if (Input.GetKeyDown (KeyCode.Alpha0)) {
+								NotifyObservers (KeyCode.Alpha0);	
+						} else if (Input.GetKeyDown (KeyCode.Minus)) {
+								NotifyObservers (KeyCode.Minus);	
+						} else if (Input.GetKeyDown (KeyCode.C)) {
+								NotifyObservers (KeyCode.C);	
+						} else if (Input.GetKeyDown (KeyCode.A)) {
+								NotifyObservers (KeyCode.A);
+						}
 				}
 
 				public void RegisterObserver (IInputObserver observer)
@@ -43,7 +54,6 @@ namespace AssemblyCSharp
 						foreach (IInputObserver observer in registeredObservers) {
 								observer.notify (pressedKey);
 						}
-
 				}		
 		}
 }

@@ -83,7 +83,7 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 		}
 		private void AddLeaderboard ()
 		{
-				AssemblyCSharp.UnityTetris.sceneMgr.LoadLeaderboardScores ();
+				//AssemblyCSharp.UnityTetris.sceneMgr.LoadLeaderboardScores ();
 				if (AssemblyCSharp.UnityTetris.sceneMgr.HighScores.Count != 0) {
 						GUI.Label (new Rect (screenWidth * 0.75f, screenHeight * 0.2f, 
 		                     screenWidth * 0.25f, screenHeight * 0.1f), 
