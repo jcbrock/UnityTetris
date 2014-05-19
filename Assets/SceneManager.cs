@@ -102,10 +102,10 @@ namespace AssemblyCSharp
 						
 						if (request.AIModeOn) {
 								if (mRowTarget <= 0 && mColumnTarget >= 0) {
-										List<KeyValuePair<int, int>> rowCols = mCurrentShape.GetFilledGridValues ();																																	
-										if (mColumnTarget < rowCols [0].Value)
+										List<Coordinate> rowCols = mCurrentShape.GetCurrentGridPosition ();																																	
+										if (mColumnTarget < rowCols [0].column)
 												movementVector.x = -1;
-										if (mColumnTarget > rowCols [0].Value)
+										if (mColumnTarget > rowCols [0].column)
 												movementVector.x = 1;
 								}				
 						} else {
@@ -159,7 +159,7 @@ namespace AssemblyCSharp
 														mCurrentShape.Rotate ();
 												}
 										
-												UnityEngine.Debug.Log (++debugId + "rowTarget: " + bestMove.row + " columnTarget: " + bestMove.column + " rotation: " + bestMove.numberOfRotations);
+												UnityEngine.Debug.Log (++debugId + "score: " + bestMove.score + " rowTarget: " + bestMove.row + " columnTarget: " + bestMove.column + " rotation: " + bestMove.numberOfRotations);
 										}
 								}
 								//myB.PrintBitArray ();
@@ -222,17 +222,18 @@ namespace AssemblyCSharp
 						
 				public void AddCurrentShapeToSceneBitGrid (bool val)
 				{		
-						List<KeyValuePair<int, int>> rowCols = mCurrentShape.GetFilledGridValues (); //todo - make block representation better
-						foreach (KeyValuePair<int,int> rowCol in rowCols) {
-								mSceneGrid [rowCol.Key, rowCol.Value] = val;
+						List<Coordinate> filledGridPositions = mCurrentShape.GetCurrentGridPosition (); //todo - convert to an array of 4
+						Coordinate[] foo = filledGridPositions.ToArray (); //todo - how to only make it 4 elements?
+						foreach (Coordinate pos in filledGridPositions) {
+								mSceneGrid [pos.row, pos.column] = val;
 						}
 				}
 
 				public bool DoAnyShapesCollideInScene (UnityEngine.Vector3 movementVector)
 				{
-						List<KeyValuePair<int, int>> rowCols = mCurrentShape.GetFilledGridValues (); //todo - make block representation better
-						foreach (KeyValuePair<int,int> rowCol in rowCols) {
-								if (mSceneGrid [rowCol.Key + (int)movementVector.y, rowCol.Value + (int)movementVector.x] == true)
+						List<Coordinate> filledGridPositions = mCurrentShape.GetCurrentGridPosition ();
+						foreach (Coordinate pos in filledGridPositions) {
+								if (mSceneGrid [pos.row + (int)movementVector.y, pos.column + (int)movementVector.x] == true)
 										return true;
 						}
 						return false;

@@ -22,6 +22,16 @@ namespace AssemblyCSharp
 	}
 		;
 
+		public struct Coordinate
+		{
+				public Coordinate (int row, int column)
+				{
+						this.row = row;
+						this.column = column;
+				}
+				public int row, column;
+		};
+
 		public class Shape
 		{	
 				public string Name; //for debugging
@@ -160,8 +170,9 @@ namespace AssemblyCSharp
 						}
 						return rows;
 				}
-				public List<KeyValuePair<int, int>> GetFilledGridValues ()
+				public List<Coordinate> GetCurrentGridPosition ()
 				{
+						List<Coordinate> blocks = new List<Coordinate> ();
 						List<KeyValuePair<int, int>> rows = new List<KeyValuePair<int, int>> ();
 						for (int i = 0; i < m_CompositeGameObject.transform.childCount; ++i) {
 				
@@ -171,9 +182,11 @@ namespace AssemblyCSharp
 								//UnityEngine.Debug.Log ("Block row value: " + rowValue.ToString ());
 								//rows.Add (Convert.ToInt32 (Math.Floor (rowValue)));
 								//rows -> ceiling cuz they are negative, cols -> floor cuz they are positive
-								rows.Add (new KeyValuePair<int, int> (Convert.ToInt32 (Math.Ceiling (rowValue)), Convert.ToInt32 (Math.Floor (colValue))));
+								//rows.Add (new KeyValuePair<int, int> ());
+								blocks.Add (new Coordinate (Convert.ToInt32 (Math.Ceiling (rowValue)), Convert.ToInt32 (Math.Floor (colValue))));
 						}
-						return rows;
+						return blocks;
+						//return rows;
 				}
 						
 				public bool collides (Shape shape, UnityEngine.Vector3 movementVector)
