@@ -22,36 +22,38 @@ namespace AssemblyCSharp
 						Version = version;
 				}
 		}
-	
+			
+		//Thread-safe - uses lock when updating Leaderboard.txt file.
+		
 		public class Leaderboard
 		{
-				public void SaveLeaderboardScores (int blockCount)
-				{
-						List<LeaderboardScore> highScores = LoadLeaderboardScores ();
-						try {
-								highScores.Add (new LeaderboardScore (System.Environment.MachineName, blockCount, DateTime.Now, "1.0.0"));
-								//m_HighScores = highScores; //update public exposed leaderboard for GUI
-								string json = JsonConvert.SerializeObject (highScores, Formatting.Indented);
-								System.IO.File.WriteAllText (@"Leaderboard.txt", json);
-						} catch (Exception ex) {
-								UnityEngine.Debug.LogWarning ("Error writing leaderboard scores: " + ex.Message);
-						}
+				FileIO fileHelper = new FileIO ();
+				public int CurrentScore;
+				private List<LeaderboardScore> mHighScores = new List<LeaderboardScore> (); //Note: Assumed ordered descending
+				public List<LeaderboardScore> GetHighScores ()
+				{						
+						return mHighScores;
 				}
-				public List<LeaderboardScore> LoadLeaderboardScores () //todo - make private, fix issue where leaderboard doesn't update right after a game for some reason...
+
+				public Leaderboard ()
 				{
-						List<LeaderboardScore> highScores = new List<LeaderboardScore> ();
-						try {
-								string json;
-								using (System.IO.StreamReader file = new System.IO.StreamReader(@"Leaderboard.txt", true)) { 
-										json = file.ReadToEnd ();
-								}
-								highScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
-								highScores = highScores.OrderByDescending (x => x.Score).ToList ();
-								//m_HighScores = highScores; //update public exposed leaderboard for GUI
-						} catch (Exception ex) {
-								UnityEngine.Debug.LogWarning ("Error loading leaderboard scores: " + ex.Message);
-						}
-						return highScores;
+						CurrentScore = 0;
+						LoadHighScores ();
+				}
+							
+				public void AddHighScore (int blockCount)
+				{												
+						LoadHighScores (); //Before updating file on disk, pick up any changes
+						mHighScores.Add (new LeaderboardScore (System.Environment.MachineName, blockCount, DateTime.Now, "1.0.0"));
+						mHighScores = mHighScores.OrderByDescending (x => x.Score).ToList ();								
+						string json = JsonConvert.SerializeObject (mHighScores, Formatting.Indented);
+						fileHelper.WriteToFile (@"Leaderboard.txt", json);													
+				}
+				private void  LoadHighScores ()
+				{																			
+						string json = fileHelper.ReadFromFile (@"Leaderboard.txt");							
+						mHighScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
+						mHighScores = mHighScores.OrderByDescending (x => x.Score).ToList ();																			
 				}
 		}
 }

@@ -52,8 +52,87 @@ namespace AssemblyCSharp
 		}
 
 
-		public class AI
+		public class AI : MonoBehaviour
 		{
+				UnityTetris tetris;
+				private static int debugId = 0; //Used to make debug print statements unique
+				public void Start ()
+				{
+						GameObject go = GameObject.Find ("GameObject");
+						tetris = (UnityTetris)go.GetComponent (typeof(UnityTetris));
+				}
+				bool calc = false;
+				bool doneOnce = false;
+				public void Update ()
+				{
+						if (tetris.scene.mTetrisGrid.WasShapeAddedToScene () && !calc) {
+								calc = true;
+								doneOnce = false;
+						} else if (!tetris.scene.mTetrisGrid.WasShapeAddedToScene ()) {
+								calc = false;
+						}
+
+						if (calc == true && !doneOnce) {
+
+								AIPlacementEval bestMove = GetBestMove (tetris.scene);
+								UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
+								for (int rot = 0; rot < bestMove.numberOfRotations; ++rot) {
+										tetris.Rotate ();
+								}
+								//AI foo = new AI ();
+								//var bestMove = foo.GetBestMove (scene);
+								List<Coordinate> rowCols = tetris.scene.GetCurrentShape ().GetCurrentGridPosition ();																																	
+								if (bestMove.column < rowCols [0].column) {
+										int moveLeftCount = rowCols [0].column - bestMove.column;
+										++debugId;
+										UnityEngine.Debug.Log (++debugId + "Start column: " + rowCols [0].column + " Added " + moveLeftCount + " translate lefts");
+										for (int i = 0; i < moveLeftCount; ++i) {
+												tetris.Translate (new Vector3 (-1, 0, 0));
+										}
+								}
+								if (bestMove.column > rowCols [0].column) {
+										int moveRightCount = bestMove.column - rowCols [0].column;
+										++debugId;
+										UnityEngine.Debug.Log (++debugId + "Start column: " + rowCols [0].column + " Added " + moveRightCount + " translate rights");
+										for (int i = 0; i < moveRightCount; ++i) {
+												tetris.Translate (new Vector3 (1, 0, 0));
+										}
+								}
+								++debugId;
+								doneOnce = true;
+								UnityEngine.Debug.Log (++debugId + "score: " + bestMove.score + " rowTarget: " + bestMove.row + " columnTarget: " + bestMove.column + " rotation: " + bestMove.numberOfRotations);
+						}
+
+
+
+				}
+				public AIPlacementEval GetBestMove (SceneRules scene)
+				{
+						//s.ShadeSubBlock (0);
+						List<AssemblyCSharp.AIPlacementEval> gridScores = new List<AIPlacementEval> ();					
+						for (int j = 0; j < scene.mTetrisGrid.GetGridColumnCount(); ++j) {
+								for (int i = 0; i < 4; ++i) {
+										AIPlacementEval score = ComputeScore3 (scene.GetCurrentShape (), scene.mTetrisGrid.mSceneGrid, j);										
+										if (score != null) {
+												score.numberOfRotations = i;
+												gridScores.Add (score); //change from being current shape to prediction...															
+										}
+										scene.GetCurrentShape ().Rotate ();
+								}
+						}						
+			
+						foreach (AIPlacementEval colScore in gridScores)
+								UnityEngine.Debug.Log (colScore.print ());
+			
+			
+						List<AIPlacementEval> bestMoves = gridScores.Where (x => x.status == PlacementStatus.NoCollision && x.pathClear == true).OrderByDescending (x => x.score).ToList ();
+						AIPlacementEval bestMove = null;
+						if (bestMoves.Count > 0)
+								bestMove = bestMoves.Where (x => x.score == bestMoves [0].score).OrderBy (x => x.row).FirstOrDefault ();								
+			
+						return bestMove;
+				}
+
 				public AIPlacementEval GetBestMove (Shape s, TetrisBitArray sceneGrid)
 				{
 						//s.ShadeSubBlock (0);

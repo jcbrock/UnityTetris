@@ -48,6 +48,16 @@ namespace AssemblyCSharp
 						mBitArray.SetAll (false);
 				}
 
+				public int GetCountOfFilledBlocksInRow (int row)
+				{
+						int filledBlockCount = 0;
+						for (int i = 0; i < mColumnCount; ++i) {
+								if (this [row, i])
+										++filledBlockCount;
+						}
+						return filledBlockCount;
+				}
+
 				public bool this [int rowIndex, int columnIndex] {
 						get {
 								rowIndex = Math.Abs (rowIndex);

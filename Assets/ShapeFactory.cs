@@ -1,98 +1,49 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
+using System;
 namespace AssemblyCSharp
 {
-		enum TetrisShape
-		{
-				square,
-				longShape,
-				tShape,
-				zShapeRight,
-				zShapeLeft,
-				lShapeRight,
-				lShapeLeft,
-				unknown
-		}
+		
 		public class ShapeFactory
 		{
-				private List<UnityEngine.GameObject> m_PossibleGameObjectsForShapes = new List<UnityEngine.GameObject> ();
-				private int m_DebugCounter = 0;
-				//private int debugger = 0;
+				private ShapeRulesetFactory rulesetFactory = new ShapeRulesetFactory ();								
+				private int m_DebugCounter = 0;				
 				
 				public ShapeFactory ()
 				{
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("square"));
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("longShape"));
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("tShape"));
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("zShapeRight"));
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("zShapeLeft"));
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("lShapeRight"));
-						m_PossibleGameObjectsForShapes.Add (UnityEngine.GameObject.Find ("lShapeLeft"));
-				}
-				
-				public Shape SpawnRandomizedTetrisShape ()
+				}			
+	
+				public Shape SpawnRandomizedTetrisShape (int rulesetOption)
 				{
-						TetrisShape randomShape = (TetrisShape)UnityEngine.Random.Range (0, 7); //7 = number of possible shapes
-						if (randomShape == TetrisShape.unknown)
-								throw new System.Exception ("unknown tetris shape generated!");
+						if (rulesetOption < 0 || rulesetOption > rulesetFactory.GetRulesets ().Count)
+								throw new ArgumentOutOfRangeException ("Invalid ruleset specified!");
+						
+						ShapeRuleset ruleset = rulesetFactory.GetRulesets () [rulesetOption];
 
-		
-
-						float xStart = UnityEngine.Random.Range (2, 7); //10 = length of tetris board (x)
+						//Choose random shape
+						int randomNumber = UnityEngine.Random.Range (0, ruleset.GetPossibleShapes ().Length); //7 = number of possible shapes				
+						Shape randomShapeToGenerate = ruleset.GetPossibleShapes () [randomNumber];
+						
+						//give random start			
+						float xStart = UnityEngine.Random.Range (ruleset.GetPossibleXStartPosition (), ruleset.GetPossibleXEndPosition ()); //10 = length of tetris board (x)
 						xStart -= (float)0.5;
-						int rotation = UnityEngine.Random.Range (0, 3); //Rotation possiblities
-						UnityEngine.Vector3 temp = new UnityEngine.Vector3 (-5.0f, (float)-0.5, 0);
+						UnityEngine.Vector3 previewPosition = new UnityEngine.Vector3 (-5.0f, (float)-0.5, 0); //this is the preview shape position
 
-						/*
-						if (debugger == 0) {
-								randomShape = TetrisShape.tShape;
-								rotation = 0;
-								xStart = 5.5f;
-								
-						}
+						//spawn
+						Shape newShape = new Shape (SpawnNewBlock (randomShapeToGenerate.GetGameObject (), previewPosition), randomShapeToGenerate.GetRotationStyle (), xStart);
 
-						if (debugger == 1) {
-								randomShape = TetrisShape.zShapeLeft;
-								rotation = 0;
-								xStart = 1.5f;					
-						}
-						debugger++;
-						*/
-
-
-						Shape newShape = new Shape (SpawnNewBlock (m_PossibleGameObjectsForShapes [(int)randomShape], temp), ConvertBlockToRotationStyle (randomShape), xStart); //eventually replace with random shape...;
+						//give random rotation
+						int rotation = UnityEngine.Random.Range (0, ruleset.GetNumberOfPossibleRotations () - 1); //Rotation possiblities
 						for (int i = 0; i < rotation; ++i) {
 								//use shape's rotation functions since they do things like making sure not to rotate out of a wall
 								//todo - ehh... if i'm spawning outside of the walls, it won't matter...
 								newShape.Rotate ();
 						}
-			
+
 						return newShape;
 				}			
-	
-				private RotationStyles ConvertBlockToRotationStyle (TetrisShape shape)
-				{
-						switch (shape) {
-						case TetrisShape.square:
-								return RotationStyles.none;
-						case TetrisShape.longShape:
-								return RotationStyles.flip90;
-						case TetrisShape.tShape:
-								return RotationStyles.full360;
-						case TetrisShape.zShapeRight:
-								return RotationStyles.flip90;
-						case TetrisShape.zShapeLeft:
-								return RotationStyles.flip90;
-						case TetrisShape.lShapeRight:
-								return RotationStyles.full360;
-						case TetrisShape.lShapeLeft:
-								return RotationStyles.full360;
-						}
-						return RotationStyles.none;
-				}
-
+			
 				private UnityEngine.GameObject SpawnNewBlock (UnityEngine.GameObject objectShape, UnityEngine.Vector3 position)
 				{
 		
