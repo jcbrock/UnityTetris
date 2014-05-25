@@ -45,7 +45,7 @@ namespace AssemblyCSharp
 				//Hide default constructor
 				private Shape ()
 				{
-				}
+				}				
 
 				public Shape (UnityEngine.GameObject compositeGameObject, RotationStyles rotationStyle, float initialXPos)
 				{
@@ -56,6 +56,17 @@ namespace AssemblyCSharp
 						this.m_CompositeGameObject = compositeGameObject;
 						this.m_InitialXPos = initialXPos;
 						m_RotationStyle = rotationStyle;
+				}
+
+				//do I want to expose this? currently exposing due to factory and need to create in UI
+				public UnityEngine.GameObject GetGameObject ()
+				{
+						return m_CompositeGameObject;
+				}
+				//do I want to expose this? currently exposing due to factory and need to create in UI
+				public RotationStyles GetRotationStyle ()
+				{
+						return m_RotationStyle;
 				}
 
 				//debug func
@@ -104,10 +115,14 @@ namespace AssemblyCSharp
 
 						return false;
 				}
-		
+
 				public void Rotate ()
 				{
-						//TODO - collision detection within Rotate is inconsisant with PlayerControl
+						Rotate (false);
+				}
+
+				public void Rotate (bool backwards)
+				{						
 						UnityEngine.Vector3 rotation;	
 						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
 						switch (m_RotationStyle) {
@@ -118,29 +133,16 @@ namespace AssemblyCSharp
 								rotation.z = (rotation.z + (90 * (m_FlipRotation ? 1 : -1)));
 								m_CompositeGameObject.transform.eulerAngles = rotation;
 								m_FlipRotation = !m_FlipRotation;
-				
-								if (this.CheckCollisionWithAnyWall (movementVector) || UnityTetris.sceneMgr.DoAnyShapesCollideInScene (movementVector)) {
-										//flip back
-										rotation = m_CompositeGameObject.transform.eulerAngles;
-										rotation.z = (rotation.z + (90 * (m_FlipRotation ? 1 : -1)));
-										m_CompositeGameObject.transform.eulerAngles = rotation;
-										m_FlipRotation = !m_FlipRotation;
-								}
 								break;
 						case RotationStyles.full360:
 								rotation = m_CompositeGameObject.transform.eulerAngles;
-								rotation.z = (rotation.z + (90 * (true ? 1 : -1)));
+								rotation.z = (rotation.z + (90 * (!backwards ? 1 : -1)));
 								m_CompositeGameObject.transform.eulerAngles = rotation;
-								if (this.CheckCollisionWithAnyWall (movementVector) || UnityTetris.sceneMgr.DoAnyShapesCollideInScene (movementVector)) {
-										//flip back
-										rotation = m_CompositeGameObject.transform.eulerAngles;
-										rotation.z = (rotation.z + (90 * (false ? 1 : -1)));
-										m_CompositeGameObject.transform.eulerAngles = rotation;
-								}
 								break;
 						}
 			
 				}
+		
 				public void PlayCollisionAudio ()
 				{
 						m_CompositeGameObject.audio.Play ();
@@ -170,6 +172,8 @@ namespace AssemblyCSharp
 						}
 						return rows;
 				}
+
+				//TODO - I probably shouldn't hit the UI for these positions...
 				public List<Coordinate> GetCurrentGridPosition ()
 				{
 						List<Coordinate> blocks = new List<Coordinate> ();
@@ -205,62 +209,7 @@ namespace AssemblyCSharp
 				}
 		
 
-				//TODO - fix this up, wall should not be hard coded
-				public bool CheckCollisionWithLeftWall (UnityEngine.Vector3 movementVector)
-				{
-						var foo = this.m_CompositeGameObject.transform;
-						foreach (UnityEngine.Transform child1 in foo) {
-								if (((child1.position.x - (child1.renderer.bounds.size.x / 2.0)) + movementVector.x) < -.1) { //jitter (why it isnt 0)
-										return true;	
-								}
-						}
-						return false;
-				}
-		
-				public bool CheckCollisionWithRightWall (UnityEngine.Vector3 movementVector)
-				{
-						var foo = this.m_CompositeGameObject.transform;
-						foreach (UnityEngine.Transform child1 in foo) {
-								if (((child1.position.x + (child1.renderer.bounds.size.x / 2.0)) + movementVector.x) > 8.1) {
-										//UnityEngine.Debug.LogWarning ("Collided with right wall. pos: " + child1.position.x + " bounds size: " + ); //todo - replace with an assert of some kind
-										return true;	
-								}
-						}
-						return false;
-				}
-				public bool CheckCollisionWithBotWall (UnityEngine.Vector3 movementVector)
-				{
-						var foo = this.m_CompositeGameObject.transform;
-						foreach (UnityEngine.Transform child1 in foo) {
-								if (((child1.position.y - (child1.renderer.bounds.size.y / 2.0) + movementVector.y)) < -24.1) {
-										return true;	
-								}
-						}
-						return false;
-				}
-		
-				public bool CheckCollisionWithAnyWall (UnityEngine.Vector3 movementVector)
-				{
-						var foo = this.m_CompositeGameObject.transform;
-						foreach (UnityEngine.Transform child1 in foo) {
-								if (CheckCollisionWithLeftWall (movementVector) ||
-										CheckCollisionWithRightWall (movementVector) ||
-										CheckCollisionWithBotWall (movementVector)) {
-										return true;	
-								}
-						}
-						return false;
-				}
-				public bool CheckCollisionWithTopWall (float xDelta, float yDelta) // used for end of game measuring
-				{
-						var foo = this.m_CompositeGameObject.transform;
-						foreach (UnityEngine.Transform child1 in foo) {
-								if ((child1.position.y + (child1.renderer.bounds.size.y / 2.0)) > 0) {
-										return true;	
-								}
-						}
-						return false;
-				}
+			
 		}
 }
 
