@@ -22,7 +22,7 @@ namespace AssemblyCSharp
 									
 
 				//For these member variables surfaced outside of class, only expose as read-only												
-				private List<AssemblyCSharp.ISceneObserver> registeredObservers = new List<AssemblyCSharp.ISceneObserver> ();
+				//private List<AssemblyCSharp.ISceneObserver> registeredObservers = new List<AssemblyCSharp.ISceneObserver> ();
 				private ShapeFactory mFactory; //todo - message passing to factor? or overkill? or not worth cuz I need to wait on it to return before I start again
 				private Shape mCurrentShape;
 				private Shape mPreviewShape;				
@@ -129,7 +129,7 @@ namespace AssemblyCSharp
 						//Handle game end condition
 						//if (mCurrentShape.CheckCollisionWithTopWall (0, 0)) {
 						UnityEngine.GameObject.Find ("background").audio.Play ();
-						NotifyObservers (mPlacedBlockCount, GameState.Ended);
+						//NotifyObservers (mPlacedBlockCount, GameState.Ended);
 						//EndGame ();
 						//todo - fix
 						//	UnityTetris.SceneRequestInfo request2 = new UnityTetris.SceneRequestInfo ();
@@ -138,7 +138,7 @@ namespace AssemblyCSharp
 						return;
 						//}
 												
-						NotifyObservers (mPlacedBlockCount);
+						//NotifyObservers (mPlacedBlockCount);
 
 						mSceneGrid.PrintBitArray ();
 				
@@ -279,25 +279,7 @@ namespace AssemblyCSharp
 								s2.ShiftBlocksAboveDeletedRow (row * -1);										
 						}
 				}
-		
 
-				public void RegisterObserver (AssemblyCSharp.ISceneObserver observer)
-				{
-						registeredObservers.Add (observer);
-				}
-				public void UnregisterObserver (AssemblyCSharp.ISceneObserver observer)
-				{
-						registeredObservers.Remove (observer);
-				}
-				private void NotifyObservers (int currentPlacedShapeCount)
-				{
-						NotifyObservers (currentPlacedShapeCount, GameState.None);	
-				}
-				private void NotifyObservers (int currentPlacedShapeCount, GameState gameState)
-				{
-						foreach (AssemblyCSharp.ISceneObserver observer in registeredObservers) {
-								observer.notify (new GameInfoPacket (currentPlacedShapeCount, gameState));
-						}		
-				}	
+				
 		}
 }
