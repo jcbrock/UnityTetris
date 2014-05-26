@@ -7,37 +7,18 @@ using System.Linq;
 
 namespace AssemblyCSharp
 {
-		public class LeaderboardScore
-		{
-				public string Name { get; set; }
-				public int Score { get; set; }
-				public DateTime Date  { get; set; }
-				public string Version { get; set; }
-	
-				public LeaderboardScore (string name, int score, DateTime date, string version)
-				{
-						Name = name;
-						Score = score;
-						Date = date;
-						Version = version;
-				}
-		}
-			
-		//Thread-safe - uses lock when updating Leaderboard.txt file.
-		
+		//Thread-safe - uses lock when updating Leaderboard.txt file.		
 		public class Leaderboard
 		{
-				FileIO fileHelper = new FileIO ();
-				public int CurrentScore;
-				private List<LeaderboardScore> mHighScores = new List<LeaderboardScore> (); //Note: Assumed ordered descending
-				public List<LeaderboardScore> GetHighScores ()
-				{						
-						return mHighScores;
-				}
+				public int CurrentScore { get { return mCurrentScore; } }
+				public List<LeaderboardScore> HighScores { get { return mHighScores; } }
+				private int mCurrentScore;
+				private FileIO mFileHelper = new FileIO ();				
+				private List<LeaderboardScore> mHighScores = new List<LeaderboardScore> (); //Note: Assumed ordered descending				
 
 				public Leaderboard ()
 				{
-						CurrentScore = 0;
+						mCurrentScore = 0;
 						LoadHighScores ();
 				}
 							
@@ -47,11 +28,11 @@ namespace AssemblyCSharp
 						mHighScores.Add (new LeaderboardScore (System.Environment.MachineName, blockCount, DateTime.Now, "1.0.0"));
 						mHighScores = mHighScores.OrderByDescending (x => x.Score).ToList ();								
 						string json = JsonConvert.SerializeObject (mHighScores, Formatting.Indented);
-						fileHelper.WriteToFile (@"Leaderboard.txt", json);													
+						mFileHelper.WriteToFile (@"Leaderboard.txt", json);													
 				}
 				private void  LoadHighScores ()
 				{																			
-						string json = fileHelper.ReadFromFile (@"Leaderboard.txt");							
+						string json = mFileHelper.ReadFromFile (@"Leaderboard.txt");							
 						mHighScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
 						mHighScores = mHighScores.OrderByDescending (x => x.Score).ToList ();																			
 				}

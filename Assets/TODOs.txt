@@ -1,0 +1,4 @@
+//Cap frame time if needed (cut AI calculations short probably)
+//Clean up DeleteRow in TetrisBitArray
+//Clean up Shape / ShapeFactory / ShapeRuleset classes...
+//Clean up TetrisGrid class
