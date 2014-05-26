@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 namespace AssemblyCSharp
 {
-		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver
+		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver, ISceneRulesObserver
 		{
 				//Apparently Structs are more different than classes in C# than they are in C++
 				//Their member variables default to private like classes do, (which is different than c++)		
@@ -36,6 +36,7 @@ namespace AssemblyCSharp
 				{
 						Application.runInBackground = true; 												
 						scene = new SceneRules ();
+						scene.RegisterObserver (this);
 
 						//Register this class as an observer with the input and menu controller
 						GameObject go = GameObject.Find ("GameObject");
@@ -73,9 +74,7 @@ namespace AssemblyCSharp
 								return;
 			
 						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?
-						if (scene.GetIsGameOver ())
-								currentGameState = AssemblyCSharp.GameState.Ended;
-			
+
 						switch (request.type) {
 						case SceneRequestInfo.Type.RotateShapeRequest:
 								{
@@ -146,6 +145,11 @@ namespace AssemblyCSharp
 				void IMenuObserver.notify (GameState gameState)
 				{					
 						ChangeGameState (gameState);
+				}
+				void ISceneRulesObserver.notify (SceneInfo sceneInfo)
+				{					
+						if (sceneInfo.StateUpdate == StateUpdate.GameEnded)
+								currentGameState = AssemblyCSharp.GameState.Ended;
 				}
 
 				// Update is called once per frame

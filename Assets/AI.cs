@@ -50,61 +50,19 @@ namespace AssemblyCSharp
 				}
 		}
 
-		public class AI : MonoBehaviour
+		public class AI : MonoBehaviour, ISceneRulesObserver, IInputObserver
 		{
 				UnityTetris tetris;
+				bool AIModeOn = false;
 				private static int debugId = 0; //Used to make debug print statements unique
 				public void Start ()
 				{
 						GameObject go = GameObject.Find ("GameObject");
+						((PlayerControl)go.GetComponent (typeof(PlayerControl))).RegisterObserver (this);
 						tetris = (UnityTetris)go.GetComponent (typeof(UnityTetris));
+						tetris.scene.RegisterObserver (this);
 				}
-				bool calc = false;
-				bool doneOnce = false;
-				public void Update ()
-				{
-						if (tetris.scene.mTetrisGrid.WasShapeAddedToScene () && !calc) {
-								calc = true;
-								doneOnce = false;
-						} else if (!tetris.scene.mTetrisGrid.WasShapeAddedToScene ()) {
-								calc = false;
-						}
-						if (calc == true && !doneOnce) {
-
-								AIMoveEvaluation bestMove = GetBestMove (tetris.scene);
-
-								if (bestMove == null) {
-										UnityEngine.Debug.LogWarning ("Couldn't compute BestMove for some reason");
-										return;
-								}
-								UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
-								for (int rot = 0; rot < bestMove.NumberOfRotations; ++rot) {
-										tetris.Rotate ();
-								}
-								
-								AssemblyCSharp.Coordinate anchor = tetris.scene.GetCurrentShape ().GetAnchorCoordinate ();
-								if (bestMove.Column < anchor.column) {
-										int moveLeftCount = anchor.column - bestMove.Column;
-										++debugId;
-										UnityEngine.Debug.Log (++debugId + "Start column: " + anchor.column + " Added " + moveLeftCount + " translate lefts");
-										for (int i = 0; i < moveLeftCount; ++i) {
-												tetris.Translate (new Vector3 (-1, 0, 0));
-										}
-								}
-								if (bestMove.Column > anchor.column) {
-										int moveRightCount = bestMove.Column - anchor.column;
-										++debugId;
-										UnityEngine.Debug.Log (++debugId + "Start column: " + anchor.column + " Added " + moveRightCount + " translate rights");
-										for (int i = 0; i < moveRightCount; ++i) {
-												tetris.Translate (new Vector3 (1, 0, 0));
-										}
-								}
-								++debugId;
-								doneOnce = true;
-								UnityEngine.Debug.Log (++debugId + "score: " + bestMove.Score + " rowTarget: " + bestMove.Row + " columnTarget: " + bestMove.Column + " rotation: " + bestMove.NumberOfRotations);
-						}
-				}
-
+	
 				private AIMoveEvaluation GetBestMove (SceneRules scene)
 				{						
 						List<AssemblyCSharp.AIMoveEvaluation> possibleScores = new List<AIMoveEvaluation> ();		
@@ -221,6 +179,55 @@ namespace AssemblyCSharp
 				
 						}
 						return score;
+				}
+
+				private void ComputeAIForCurrentPiece ()
+				{
+						AIMoveEvaluation bestMove = GetBestMove (tetris.scene);
+			
+						if (bestMove == null) {
+								UnityEngine.Debug.LogWarning ("Couldn't compute BestMove for some reason");
+								return;
+						}
+						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
+						for (int rot = 0; rot < bestMove.NumberOfRotations; ++rot) {
+								tetris.Rotate ();
+						}
+			
+						AssemblyCSharp.Coordinate anchor = tetris.scene.GetCurrentShape ().GetAnchorCoordinate ();
+						if (bestMove.Column < anchor.column) {
+								int moveLeftCount = anchor.column - bestMove.Column;								
+								UnityEngine.Debug.Log (++debugId + "Start column: " + anchor.column + " Added " + moveLeftCount + " translate lefts");
+								for (int i = 0; i < moveLeftCount; ++i) {
+										tetris.Translate (new Vector3 (-1, 0, 0));
+								}
+						}
+						if (bestMove.Column > anchor.column) {
+								int moveRightCount = bestMove.Column - anchor.column;								
+								UnityEngine.Debug.Log (++debugId + "Start column: " + anchor.column + " Added " + moveRightCount + " translate rights");
+								for (int i = 0; i < moveRightCount; ++i) {
+										tetris.Translate (new Vector3 (1, 0, 0));
+								}
+						}						
+						UnityEngine.Debug.Log (++debugId + "score: " + bestMove.Score + " rowTarget: " + bestMove.Row + " columnTarget: " + bestMove.Column + " rotation: " + bestMove.NumberOfRotations);
+				}
+
+				//Handle updates from the Scene and Input
+				void ISceneRulesObserver.notify (SceneInfo sceneInfo)
+				{					
+						if (sceneInfo.StateUpdate == StateUpdate.GeneratedNewShape && AIModeOn) {						
+								ComputeAIForCurrentPiece ();
+						}
+				}
+				void AssemblyCSharp.IInputObserver.notify (UnityEngine.KeyCode pressedKey)
+				{											
+						if (pressedKey == KeyCode.A) {
+								
+								AIModeOn = !AIModeOn;
+								UnityEngine.Debug.Log ("AI mode is turned on: " + AIModeOn.ToString ());
+								if (AIModeOn)
+										ComputeAIForCurrentPiece ();
+						}
 				}
 		}
 }

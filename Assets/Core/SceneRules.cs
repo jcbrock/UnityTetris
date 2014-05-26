@@ -11,9 +11,23 @@ using System;
 using System.Collections.Generic;
 namespace AssemblyCSharp
 {
+		public enum StateUpdate
+		{
+				None,
+				GeneratedNewShape,
+				GameEnded
+		}
+		public class SceneInfo
+		{
+				public SceneInfo (StateUpdate stateUpdate)
+				{
+						StateUpdate = stateUpdate;
+				}
+				public StateUpdate StateUpdate;
+		}
 		//todo - rename?
 		public class SceneRules
-		{
+		{		
 				public SceneRules ()
 				{			
 						
@@ -26,17 +40,18 @@ namespace AssemblyCSharp
 				public TetrisGrid mTetrisGrid = new TetrisGrid ();
 				private ShapeFactory mFactory = new ShapeFactory ();				
 				private static int debugId = 0; //Used to make debug print statements unique	
-				private bool mIsGameOver = false;
+				//private bool mIsGameOver = false;
 				private int mRulesetOption = -1;
+				private List<AssemblyCSharp.ISceneRulesObserver> registeredObservers = new List<AssemblyCSharp.ISceneRulesObserver> ();
 
 				public Shape GetCurrentShape ()
 				{
 						return mCurrentShape;
 				}
-				public bool GetIsGameOver ()
-				{
-						return mIsGameOver;
-				}
+				//public bool GetIsGameOver ()
+				//{
+				//		return mIsGameOver;
+				//}
 				public int GetCurrentScore ()
 				{
 						return mTetrisGrid.GetShapeCount ();
@@ -52,7 +67,8 @@ namespace AssemblyCSharp
 
 						//Check for end game condition						
 						if (mTetrisGrid.GetHighestRowContainingBlock () == 0) {								
-								mIsGameOver = true;								
+								//mIsGameOver = true;		
+								NotifyObservers (StateUpdate.GameEnded);
 								return;
 						}
 
@@ -66,7 +82,8 @@ namespace AssemblyCSharp
 
 								mCurrentShape = mPreviewShape;																
 								mCurrentShape.TranslateToInitialPlacement ();//todo - hmmmm
-								mPreviewShape = mFactory.SpawnRandomizedTetrisShape (mRulesetOption);																			
+								mPreviewShape = mFactory.SpawnRandomizedTetrisShape (mRulesetOption);	
+								NotifyObservers (StateUpdate.GeneratedNewShape);
 						}
 
 				}
@@ -93,6 +110,21 @@ namespace AssemblyCSharp
 						mCurrentShape = null;
 						mPreviewShape = null;
 						mTetrisGrid.Finalize2 ();
-				}								
+				}
+
+				public void RegisterObserver (AssemblyCSharp.ISceneRulesObserver observer)
+				{
+						registeredObservers.Add (observer);
+				}
+				public void UnregisterObserver (AssemblyCSharp.ISceneRulesObserver observer)
+				{
+						registeredObservers.Remove (observer);
+				}
+				private void NotifyObservers (AssemblyCSharp.StateUpdate newState)
+				{
+						foreach (AssemblyCSharp.ISceneRulesObserver observer in registeredObservers) {
+								observer.notify (new SceneInfo (newState));
+						}		
+				}		
 		}
 }

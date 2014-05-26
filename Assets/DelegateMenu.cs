@@ -115,7 +115,7 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 		void AssemblyCSharp.IInputObserver.notify (UnityEngine.KeyCode pressedKey)
 		{					
 				UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
-				if (Input.GetKeyDown (KeyCode.Escape)) {
+				if (pressedKey == KeyCode.Escape) {
 						menuFunction = mainMenuWithResume;
 						mHighScoresCache = tetrisGame.GetCurrentHighScores ().Take (5).ToList ();						
 						NotifyObservers (AssemblyCSharp.GameState.Paused);
