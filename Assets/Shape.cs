@@ -76,6 +76,11 @@ namespace AssemblyCSharp
 								m_CompositeGameObject.transform.GetChild (blockIndex).GetComponent<UnityEngine.SpriteRenderer> ().color = UnityEngine.Color.magenta;
 						}		
 				}
+
+				public Coordinate GetAnchorCoordinate ()
+				{
+						return GetCurrentGridPosition () [0];
+				}
 		
 		
 				//cleans up UI of shape

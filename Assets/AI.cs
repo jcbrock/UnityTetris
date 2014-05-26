@@ -16,21 +16,20 @@ namespace AssemblyCSharp
 				CollidedWithWallAndShape,
 				NoCollision
 		}
-		public class AIPlacementEval
+		public class AIMoveEvaluation
 		{
-				public int row;
-				public int column;
-				public int numberOfRotations;
-				public float score;
-				public bool pathClear;
-				public PlacementStatus status;
-				public string debug;
-				public string root;
+				public int Row;
+				public int Column;
+				public int NumberOfRotations;
+				public float Score;
+				public bool PathClear;
+				public PlacementStatus Status;
+				public string DebugText;				
 
-				public string print ()
+				public string Print ()
 				{
 						string stat = string.Empty;
-						switch (status) {
+						switch (Status) {
 						case PlacementStatus.None:
 								stat = "None";
 								break;
@@ -47,10 +46,9 @@ namespace AssemblyCSharp
 								stat = "NoCollision";
 								break;
 						}
-						return "PlacementEval - row: " + row + " column: " + column + " score: " + score + " numberOfRotations: " + numberOfRotations + " pathClear: " + pathClear + " status: " + stat + " root: " + root + " debug: " + debug;
+						return "PlacementEval - row: " + Row + " column: " + Column + " score: " + Score + " numberOfRotations: " + NumberOfRotations + " pathClear: " + PathClear + " status: " + stat + " debug: " + DebugText;
 				}
 		}
-
 
 		public class AI : MonoBehaviour
 		{
@@ -71,178 +69,158 @@ namespace AssemblyCSharp
 						} else if (!tetris.scene.mTetrisGrid.WasShapeAddedToScene ()) {
 								calc = false;
 						}
-
 						if (calc == true && !doneOnce) {
 
-								AIPlacementEval bestMove = GetBestMove (tetris.scene);
+								AIMoveEvaluation bestMove = GetBestMove (tetris.scene);
+
+								if (bestMove == null) {
+										UnityEngine.Debug.LogWarning ("Couldn't compute BestMove for some reason");
+										return;
+								}
 								UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
-								for (int rot = 0; rot < bestMove.numberOfRotations; ++rot) {
+								for (int rot = 0; rot < bestMove.NumberOfRotations; ++rot) {
 										tetris.Rotate ();
 								}
-								//AI foo = new AI ();
-								//var bestMove = foo.GetBestMove (scene);
-								List<Coordinate> rowCols = tetris.scene.GetCurrentShape ().GetCurrentGridPosition ();																																	
-								if (bestMove.column < rowCols [0].column) {
-										int moveLeftCount = rowCols [0].column - bestMove.column;
+								
+								AssemblyCSharp.Coordinate anchor = tetris.scene.GetCurrentShape ().GetAnchorCoordinate ();
+								if (bestMove.Column < anchor.column) {
+										int moveLeftCount = anchor.column - bestMove.Column;
 										++debugId;
-										UnityEngine.Debug.Log (++debugId + "Start column: " + rowCols [0].column + " Added " + moveLeftCount + " translate lefts");
+										UnityEngine.Debug.Log (++debugId + "Start column: " + anchor.column + " Added " + moveLeftCount + " translate lefts");
 										for (int i = 0; i < moveLeftCount; ++i) {
 												tetris.Translate (new Vector3 (-1, 0, 0));
 										}
 								}
-								if (bestMove.column > rowCols [0].column) {
-										int moveRightCount = bestMove.column - rowCols [0].column;
+								if (bestMove.Column > anchor.column) {
+										int moveRightCount = bestMove.Column - anchor.column;
 										++debugId;
-										UnityEngine.Debug.Log (++debugId + "Start column: " + rowCols [0].column + " Added " + moveRightCount + " translate rights");
+										UnityEngine.Debug.Log (++debugId + "Start column: " + anchor.column + " Added " + moveRightCount + " translate rights");
 										for (int i = 0; i < moveRightCount; ++i) {
 												tetris.Translate (new Vector3 (1, 0, 0));
 										}
 								}
 								++debugId;
 								doneOnce = true;
-								UnityEngine.Debug.Log (++debugId + "score: " + bestMove.score + " rowTarget: " + bestMove.row + " columnTarget: " + bestMove.column + " rotation: " + bestMove.numberOfRotations);
+								UnityEngine.Debug.Log (++debugId + "score: " + bestMove.Score + " rowTarget: " + bestMove.Row + " columnTarget: " + bestMove.Column + " rotation: " + bestMove.NumberOfRotations);
 						}
-
-
-
 				}
-				public AIPlacementEval GetBestMove (SceneRules scene)
-				{
-						//s.ShadeSubBlock (0);
-						List<AssemblyCSharp.AIPlacementEval> gridScores = new List<AIPlacementEval> ();					
-						for (int j = 0; j < scene.mTetrisGrid.GetGridColumnCount(); ++j) {
+
+				private AIMoveEvaluation GetBestMove (SceneRules scene)
+				{						
+						List<AssemblyCSharp.AIMoveEvaluation> possibleScores = new List<AIMoveEvaluation> ();		
+						
+						//For each column, compute score if we let the piece fall in this column (for each rotation of the piece too)
+						AssemblyCSharp.Coordinate anchor = scene.GetCurrentShape ().GetAnchorCoordinate ();
+						int shiftedColumnIndex = anchor.column * -1;								
+						for (int j = shiftedColumnIndex; j < (shiftedColumnIndex + scene.mTetrisGrid.GetGridColumnCount()); ++j) {
 								for (int i = 0; i < 4; ++i) {
-										AIPlacementEval score = ComputeScore3 (scene.GetCurrentShape (), scene.mTetrisGrid.mSceneGrid, j);										
+										AIMoveEvaluation score = ComputeScoreForColumn (scene, j);										
 										if (score != null) {
-												score.numberOfRotations = i;
-												gridScores.Add (score); //change from being current shape to prediction...															
+												score.NumberOfRotations = i;
+												score.Column = j + (shiftedColumnIndex * -1);
+												possibleScores.Add (score); //change from being current shape to prediction...															
 										}
 										scene.GetCurrentShape ().Rotate ();
 								}
 						}						
 			
-						foreach (AIPlacementEval colScore in gridScores)
-								UnityEngine.Debug.Log (colScore.print ());
+						foreach (AIMoveEvaluation colScore in possibleScores)
+								UnityEngine.Debug.Log (colScore.Print ());
 			
-			
-						List<AIPlacementEval> bestMoves = gridScores.Where (x => x.status == PlacementStatus.NoCollision && x.pathClear == true).OrderByDescending (x => x.score).ToList ();
-						AIPlacementEval bestMove = null;
+						//Calculate the best score
+						List<AIMoveEvaluation> bestMoves = possibleScores.Where (x => x.Status == PlacementStatus.NoCollision && x.PathClear == true).OrderByDescending (x => x.Score).ToList ();
+						AIMoveEvaluation bestMove = null;
 						if (bestMoves.Count > 0)
-								bestMove = bestMoves.Where (x => x.score == bestMoves [0].score).OrderBy (x => x.row).FirstOrDefault ();								
+								bestMove = bestMoves.Where (x => x.Score == bestMoves [0].Score).OrderBy (x => x.Row).FirstOrDefault ();								
 			
 						return bestMove;
+				}													
+
+				private	AIMoveEvaluation ComputeScoreForColumn (SceneRules scene, int columnDelta)
+				{					
+						List<AssemblyCSharp.Coordinate> filledGridPositions = scene.GetCurrentShape ().GetCurrentGridPosition ();						
+						//s.ShadeSubBlock (0); //shade anchor block for debugging
+
+						AIMoveEvaluation placement = new AIMoveEvaluation ();
+
+						//Verify this is a column placement, skip computation if not						
+						Vector3 movementVector = new Vector3 (columnDelta, 0, 0);
+						if (!scene.mTetrisGrid.CheckCollisionWithLeftWall (scene.GetCurrentShape (), movementVector) &&
+								!scene.mTetrisGrid.CheckCollisionWithRightWall (scene.GetCurrentShape (), movementVector)) {		
+								
+								//Find the resting place for the shape in this column												
+								SetTranslationVectorToRestingPosition (scene, ref movementVector);
+
+								//Compute score of resting spot																	
+								placement.Score = GetScore (scene, movementVector);					
+								placement.PathClear = true; //since we're just translating straight down until it hits something, this is true																						
+								placement.Status = PlacementStatus.NoCollision;
+						} else
+								placement.Status = PlacementStatus.CollidedWithWall;
+														
+						return placement;																						
 				}
 
-				public AIPlacementEval GetBestMove (Shape s, TetrisBitArray sceneGrid)
+				//Sets movementVector argument to the resting position
+				private void SetTranslationVectorToRestingPosition (SceneRules scene, ref Vector3 movementVector)
 				{
-						//s.ShadeSubBlock (0);
-						List<AssemblyCSharp.AIPlacementEval> gridScores = new List<AIPlacementEval> ();					
-						for (int j = 0; j < sceneGrid.GetColumnCount(); ++j) {
-								for (int i = 0; i < 4; ++i) {
-										AIPlacementEval score = ComputeScore3 (s, sceneGrid, j);										
-										if (score != null) {
-												score.numberOfRotations = i;
-												gridScores.Add (score); //change from being current shape to prediction...															
-										}
-										s.Rotate ();
+						//Find the resting place for the shape in this column. This loop is safe because eventually it'll hit the bot wall															
+						while (true) {								
+								movementVector.y -= 1;
+								if (scene.mTetrisGrid.CheckCollisionWithBotWall (scene.GetCurrentShape (), movementVector) || scene.mTetrisGrid.DoAnyShapesCollideInScene (scene.GetCurrentShape (), movementVector)) {
+										movementVector.y += 1; //move back up to the position before the collision																							
+										return;
 								}
 						}						
-
-						foreach (AIPlacementEval colScore in gridScores)
-								UnityEngine.Debug.Log (colScore.print ());
-
-									
-						List<AIPlacementEval> bestMoves = gridScores.Where (x => x.status == PlacementStatus.NoCollision && x.pathClear == true).OrderByDescending (x => x.score).ToList ();
-						AIPlacementEval bestMove = null;
-						if (bestMoves.Count > 0)
-								bestMove = bestMoves.Where (x => x.score == bestMoves [0].score).OrderBy (x => x.row).FirstOrDefault ();								
-
-						return bestMove;
 				}
-						
-				static int foo = 0;
-			
-				//makes sense to pass in:
-				//Shape, 
-				//Coordinate (position of shape)
-				//grid? or someway to detect grid filled
 
-				private float GetScore (Shape s, int movementY, int columnIndex, TetrisBitArray m_SceneGrid)
+				private float GetScore (SceneRules scene, Vector3 movementVector)
 				{
-						//Score computed by adding number neighbors and deducting points if covering up gap / higher blocks
+						//Get neighbor information from the scene for current shape
+						List<NeighborInfo> neighbors = scene.mTetrisGrid.GetBlockNeighborCount (scene.GetCurrentShape (), movementVector);
+			
+						if (neighbors == null) //invalid shape, make sure it never gets picked
+								return float.MinValue;
+			
+						//Score computed by adding points for neighbors and deducting points if covering up gap / higher blocks
 						float score = 0f;
-						List<Coordinate> filledGridPositions = s.GetCurrentGridPosition ();
-						foreach (AssemblyCSharp.Coordinate rowCol in filledGridPositions) {
-								int newRow = rowCol.row + movementY;
-								int newColumn = rowCol.column - filledGridPositions [0].column + columnIndex;
-								int right = newColumn + 1;
-								int left = newColumn - 1;
-								int up = newRow + 1;
-								int down = newRow - 1;								
-								if (up <= 0 && m_SceneGrid [up, newColumn] == true) {
+						foreach (NeighborInfo neighbor in neighbors) {
+								//Add a point for each shape neighbor
+								if (neighbor.TopNeighborStatus == GridInfo.Filled) {
 										++score;
-								}
-
-								if (right < 8 && m_SceneGrid [newRow, right] == true) {
+								}				
+								if (neighbor.RightNeighborStatus == GridInfo.Filled) {
 										++score;														
 								}
-								if (right == 8) //boost a little bit on the sides of scores don't clump in the middle
-										score += .5f;
-								if (left == -1)
-										score += .5f;
-								if (down > -24 && m_SceneGrid [down, newColumn] == true) {
+								if (neighbor.BotNeighborStatus == GridInfo.Filled) {
 										++score;
-								}										
-								if (down > -24 && m_SceneGrid [down, newColumn] == false && filledGridPositions.Count (x => x.row == (rowCol.row - 1) && x.column == rowCol.column) == 0) {												
-										--score; //removing a point for covering up a hole, including those created by the shape, think upside down L												
-								}
-								if (down == -24) {
-										++score;																											
-								}
-					
-								if (left >= 0 && m_SceneGrid [newRow, left] == true) {
+								}		
+								if (neighbor.LeftNeighborStatus == GridInfo.Filled) {
 										++score;
+								}		
+				
+								//Add points for each wall neighbor
+								if (neighbor.RightNeighborStatus == GridInfo.Wall) { //boost a little bit on the sides of scores don't clump in the middle
+										score += .5f;
+								}							
+								if (neighbor.LeftNeighborStatus == GridInfo.Wall) {
+										score += .5f;
 								}
-					
-								float fudge = (newRow + 24) * .1f;
-								score -= fudge;												
+								if (neighbor.BotNeighborStatus == GridInfo.Wall) {
+										++score;																																					
+								}
+				
+								//Remove a point if covering up an open hole
+								if (neighbor.BotNeighborStatus == GridInfo.Open) {
+										--score;
+								}
+				
+								//Remove points for higher rows (give priority to lower rows)
+								float fudge = (neighbor.row + 24) * .1f;
+								score -= fudge;								
+				
 						}
 						return score;
-				}
-
-				public	AIPlacementEval ComputeScore3 (Shape s, TetrisBitArray m_SceneGrid, int columnIndex)
-				{
-						List<AssemblyCSharp.Coordinate> filledGridPositions = s.GetCurrentGridPosition ();														
-						AIPlacementEval placement = new AIPlacementEval ();
-						placement.status = PlacementStatus.None; //Defaults to this, but being explicit
-
-						//does this shape go out of the grid? - TODO, make this way more clear
-						foreach (Coordinate pos in filledGridPositions) {
-								if ((columnIndex + (pos.column - filledGridPositions [0].column)) < 0 || (columnIndex + pos.column - filledGridPositions [0].column) > 7)
-										return null;								
-						}
-		
-		
-						//Find the resting place for the shape in this column				
-						int yTranslation = 0;						
-						while (placement.status == PlacementStatus.None) {
-								yTranslation += -1;								
-								foreach (Coordinate pos in filledGridPositions) {
-										if (pos.row + yTranslation <= -24 || m_SceneGrid [pos.row + yTranslation, pos.column - filledGridPositions [0].column + columnIndex] == true) {												
-												yTranslation += 1;
-												placement.row = pos.row + yTranslation;
-												placement.status = PlacementStatus.NoCollision;
-												break;
-										}
-								}
-						}
-						
-						//found its resting spot, compute score																		
-						placement.score = GetScore (s, yTranslation, columnIndex, m_SceneGrid);								
-						placement.pathClear = true;								
-						placement.numberOfRotations = 0;																 
-						placement.column = columnIndex;								
-						return placement;																						
 				}
 		}
 }

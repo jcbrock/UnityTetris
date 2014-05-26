@@ -8,11 +8,31 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using System;
+using System.Linq;
 using System.Collections.Generic;
 namespace AssemblyCSharp
 {
+		public class NeighborInfo
+		{
+				public int row;
+				public int column;
+				public GridInfo RightNeighborStatus;
+				public GridInfo LeftNeighborStatus;
+				public GridInfo TopNeighborStatus;
+				public GridInfo BotNeighborStatus;
+		}
+
+		public enum GridInfo
+		{
+				None,
+				Open,
+				Filled,
+				Wall
+		}
 		public class TetrisGrid
 		{
+
+
 				//grid concept / collision detection, but no concept of current / preview shapes
 				public TetrisGrid ()
 				{
@@ -58,8 +78,7 @@ namespace AssemblyCSharp
 				}
 
 				public void HandleTranslateRequest (Shape mCurrentShape, UnityEngine.Vector3 movementVector) //feed in shape into this scene
-				{		
-						mCurrentShape.ShadeSubBlock (0);
+				{								
 						mWasShapeAddedToScene = false;
 						if (CheckCollisionWithLeftWall (mCurrentShape, movementVector) ||
 								CheckCollisionWithRightWall (mCurrentShape, movementVector))
@@ -150,7 +169,58 @@ namespace AssemblyCSharp
 						}
 				}
 
-				private bool DoAnyShapesCollideInScene (Shape shape, UnityEngine.Vector3 movementVector)
+				public List<NeighborInfo> GetBlockNeighborCount (Shape s, UnityEngine.Vector3 movementVector)
+				{
+						List<NeighborInfo> neighbors = new List<NeighborInfo> ();
+						List<Coordinate> filledGridPositions = s.GetCurrentGridPosition ();
+						foreach (AssemblyCSharp.Coordinate rowCol in filledGridPositions) {
+								NeighborInfo info = new NeighborInfo ();
+								info.row = rowCol.row + (int)movementVector.y;
+								info.column = rowCol.column + (int)movementVector.x;
+								if (info.row > 0 || info.row <= -24 || info.column < 0 || info.column > 7)
+										return null;
+				
+								int right = info.column + 1;
+								int left = info.column - 1;
+								int up = info.row + 1;
+								int down = info.row - 1;								
+								if (up <= 0 && mSceneGrid [up, info.column] == true) {
+										info.TopNeighborStatus = GridInfo.Filled;
+								}
+				
+								if (right < 8 && mSceneGrid [info.row, right] == true) {
+										info.RightNeighborStatus = GridInfo.Filled;
+								}
+								if (right == 8) //boost a little bit on the sides of scores don't clump in the middle
+										info.RightNeighborStatus = GridInfo.Wall;
+								if (left == -1)
+										info.LeftNeighborStatus = GridInfo.Wall;
+								if (down > -24 && mSceneGrid [down, info.column] == true) {
+										info.BotNeighborStatus = GridInfo.Filled;
+								}										
+								if (down > -24 && mSceneGrid [down, info.column] == false && filledGridPositions.Count (x => x.row == (rowCol.row - 1) && x.column == rowCol.column) == 0) {												
+										info.BotNeighborStatus = GridInfo.Open;
+								}
+								if (down == -24) {
+										info.BotNeighborStatus = GridInfo.Wall;
+								}
+								if (left >= 0 && mSceneGrid [info.row, left] == true) {
+										info.LeftNeighborStatus = GridInfo.Filled;
+								}
+																													
+								neighbors.Add (info);
+						}
+						return neighbors;
+				}
+
+				//	private int GetBlockNeightborCount ()
+				//{
+				//
+				//	}
+
+
+				//These collision detection functions are made public so they can be accessed by the AI
+				public bool DoAnyShapesCollideInScene (Shape shape, UnityEngine.Vector3 movementVector)
 				{
 						List<Coordinate> filledGridPositions = shape.GetCurrentGridPosition ();
 						foreach (Coordinate pos in filledGridPositions) {
@@ -159,7 +229,7 @@ namespace AssemblyCSharp
 						}
 						return false;
 				}					
-				private bool CheckCollisionWithLeftWall (Shape shape, UnityEngine.Vector3 movementVector)
+				public bool CheckCollisionWithLeftWall (Shape shape, UnityEngine.Vector3 movementVector)
 				{
 						List<Coordinate> filledGridPositions = shape.GetCurrentGridPosition ();
 						foreach (Coordinate pos in filledGridPositions) {																											
@@ -169,7 +239,7 @@ namespace AssemblyCSharp
 						}
 						return false;
 				}
-				private bool CheckCollisionWithRightWall (Shape shape, UnityEngine.Vector3 movementVector)
+				public bool CheckCollisionWithRightWall (Shape shape, UnityEngine.Vector3 movementVector)
 				{
 						List<Coordinate> filledGridPositions = shape.GetCurrentGridPosition ();
 						foreach (Coordinate pos in filledGridPositions) {
@@ -179,7 +249,7 @@ namespace AssemblyCSharp
 						}
 						return false;
 				}
-				private bool CheckCollisionWithBotWall (Shape shape, UnityEngine.Vector3 movementVector)
+				public bool CheckCollisionWithBotWall (Shape shape, UnityEngine.Vector3 movementVector)
 				{
 						List<Coordinate> filledGridPositions = shape.GetCurrentGridPosition ();
 						foreach (Coordinate pos in filledGridPositions) {
@@ -188,7 +258,7 @@ namespace AssemblyCSharp
 						}
 						return false;
 				}
-				private bool CheckCollisionWithTopWall (Shape shape, UnityEngine.Vector3 movementVector)
+				public bool CheckCollisionWithTopWall (Shape shape, UnityEngine.Vector3 movementVector)
 				{
 						List<Coordinate> filledGridPositions = shape.GetCurrentGridPosition ();
 						foreach (Coordinate pos in filledGridPositions) {
@@ -197,10 +267,8 @@ namespace AssemblyCSharp
 								}
 						}
 						return false;
-				}
-			
-				
-				private bool CheckCollisionWithAnyWall (Shape shape, UnityEngine.Vector3 movementVector)
+				}						
+				public bool CheckCollisionWithAnyWall (Shape shape, UnityEngine.Vector3 movementVector)
 				{
 						if (CheckCollisionWithLeftWall (shape, movementVector) ||
 								CheckCollisionWithRightWall (shape, movementVector) ||
