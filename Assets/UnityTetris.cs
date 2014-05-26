@@ -3,17 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 namespace AssemblyCSharp
 {
-		public enum ChangeGameState
-		{
-				None,
-				ClearGame,
-				EndGame,
-				PauseGame,
-				ResumeGame,
-				StartGame			
-		}
-
-		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver
+		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver, ISceneRulesObserver
 		{
 				//Apparently Structs are more different than classes in C# than they are in C++
 				//Their member variables default to private like classes do, (which is different than c++)		
@@ -26,45 +16,34 @@ namespace AssemblyCSharp
 								TranslateShapeRequest,
 								ChangeGameStateRequest
 						}
-									
-						//From input
-						public struct RotateShapeData
-						{
-						};
+
 						public struct TranslateShapeData
 						{
 								public Vector3 movementVector;
 						};
-
-						//From menu
-						public struct ChangeGameStateData
-						{
-								public ChangeGameState changeGameStateTo;
-						};
 									
-						public	SceneRequestInfo.Type type;
-						public	RotateShapeData rotationData;			
-						public	TranslateShapeData translationData;
-						public ChangeGameStateData gameStateData;
-						public bool AIModeOn;
+						public	SceneRequestInfo.Type type;						
+						public	TranslateShapeData translationData;		
+						public GameState newGameState;						
 				}
-		
-				public static AssemblyCSharp.SceneManager sceneMgr;
-				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();				
-				private bool AIModeTurnedOn = false;
-				private bool freezeMode = false; //debug mode variable
+
+				private Queue<SceneRequestInfo> requestQueue = new Queue<SceneRequestInfo> ();												
+				private GameState currentGameState = GameState.None;
+				public SceneRules scene; //can make private?
+				private AssemblyCSharp.Leaderboard mLeaderboard = new Leaderboard ();
 						
 				void Start ()
 				{
-						Application.runInBackground = true; 						
-						sceneMgr = new AssemblyCSharp.SceneManager ();
+						Application.runInBackground = true; 												
+						scene = new SceneRules ();
+						scene.RegisterObserver (this);
 
 						//Register this class as an observer with the input and menu controller
 						GameObject go = GameObject.Find ("GameObject");
 						PlayerControl inputController = (PlayerControl)go.GetComponent (typeof(PlayerControl));
 						inputController.RegisterObserver (this);										
-						DelegateMenu menu = (DelegateMenu)go.GetComponent (typeof(DelegateMenu));
-						menu.RegisterObserver (this);
+						DelegateMenu gameStateController = (DelegateMenu)go.GetComponent (typeof(DelegateMenu));
+						gameStateController.RegisterObserver (this);
 				}										
 
 				
@@ -72,28 +51,20 @@ namespace AssemblyCSharp
 				{		
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
 						request.type = UnityTetris.SceneRequestInfo.Type.TranslateShapeRequest;
-						request.translationData.movementVector = movementVector;
-						request.AIModeOn = AIModeTurnedOn;
-
-						if (freezeMode)
-								request.translationData.movementVector = new Vector3 ();
-
+						request.translationData.movementVector = movementVector;						
 						requestQueue.Enqueue (request);
 				}
 				public void Rotate ()
 				{		
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;						
-						request.AIModeOn = AIModeTurnedOn;
-						//request.rotationData = null;						
+						request.type = UnityTetris.SceneRequestInfo.Type.RotateShapeRequest;																	
 						requestQueue.Enqueue (request);
 				}
-				public void ChangeGameState (ChangeGameState newState)
+				public void ChangeGameState (GameState newState)
 				{		
 						UnityTetris.SceneRequestInfo request = new SceneRequestInfo ();						
-						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;											
-						request.gameStateData.changeGameStateTo = newState;
-						request.AIModeOn = AIModeTurnedOn;
+						request.type = UnityTetris.SceneRequestInfo.Type.ChangeGameStateRequest;	
+						request.newGameState = newState;
 						requestQueue.Enqueue (request);
 				}
 
@@ -102,17 +73,19 @@ namespace AssemblyCSharp
 						if (requestQueue.Count == 0)
 								return;
 			
-						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?						
-			
+						SceneRequestInfo request = requestQueue.Dequeue (); //TODO - throttle?
+
 						switch (request.type) {
 						case SceneRequestInfo.Type.RotateShapeRequest:
 								{
-										HandleRotateShapeRequest (request);
+										if ((currentGameState & AssemblyCSharp.GameState.Running) == AssemblyCSharp.GameState.Running) 
+												HandleRotateShapeRequest (request);
 										break;
 								}
 						case SceneRequestInfo.Type.TranslateShapeRequest:
 								{
-										HandleTranslateShapeRequest (request);
+										if ((currentGameState & AssemblyCSharp.GameState.Running) == AssemblyCSharp.GameState.Running) 
+												HandleTranslateShapeRequest (request);
 										break;
 								}
 						case SceneRequestInfo.Type.ChangeGameStateRequest:
@@ -127,19 +100,29 @@ namespace AssemblyCSharp
 								}
 						}					
 				}
-				private void HandleRotateShapeRequest (SceneRequestInfo request)
-				{						
-						sceneMgr.SendSceneRequest (request);
-				}
-				private void HandleTranslateShapeRequest (SceneRequestInfo request)
-				{				
-						sceneMgr.SendSceneRequest (request);
-				}
 				private void HandleChangeGameStateRequest (SceneRequestInfo request)
-				{						
-						sceneMgr.SendSceneRequest (request);
+				{																
+						UnityEngine.Debug.Log (" currentGameState: " + currentGameState.ToString () + " request.newGameState: " + request.newGameState.ToString ());
+						if (request.newGameState == AssemblyCSharp.GameState.Running && 
+								((currentGameState & (AssemblyCSharp.GameState.None | AssemblyCSharp.GameState.Ended)) != 0)) {
+								scene.Initialize (24, 8, 0); //start new game
+						}
+						if (request.newGameState == AssemblyCSharp.GameState.Ended) {
+								mLeaderboard.AddHighScore (scene.GetCurrentScore ());
+								scene.Cleanup (); //cleanup game
+						}
+
+						currentGameState = request.newGameState;
 				}
 
+				private void HandleRotateShapeRequest (SceneRequestInfo request)
+				{										
+						scene.HandleRotateRequest ();
+				}
+				private void HandleTranslateShapeRequest (SceneRequestInfo request)
+				{									
+						scene.HandleTranslateRequest (request.translationData.movementVector);
+				}
 		
 				void IInputObserver.notify (UnityEngine.KeyCode pressedKey)
 				{					
@@ -153,29 +136,27 @@ namespace AssemblyCSharp
 						}
 						if (movementVector.x != 0 || movementVector.y != 0) {
 								Translate (movementVector);
-						}			
+						}						
 						if (pressedKey == KeyCode.UpArrow) {							
-								Rotate ();
-						}
-						if (pressedKey == KeyCode.P)
-								freezeMode = !freezeMode;
-						if (pressedKey == KeyCode.A) {
-								AIModeTurnedOn = !AIModeTurnedOn;
-								UnityEngine.Debug.Log ("AI mode turned on: " + AIModeTurnedOn.ToString ());
+								Rotate ();											
 						}
 				}
 		
-				void IMenuObserver.notify (ChangeGameState newState)
+				void IMenuObserver.notify (GameState gameState)
 				{					
-						ChangeGameState (newState);
+						ChangeGameState (gameState);
+				}
+				void ISceneRulesObserver.notify (SceneInfo sceneInfo)
+				{					
+						if (sceneInfo.StateUpdate == StateUpdate.GameEnded)
+								currentGameState = AssemblyCSharp.GameState.Ended;
 				}
 
 				// Update is called once per frame
 				int frameCounter = 0;
 				void Update ()
 				{						
-						UpdateQueuedRequests ();
-						sceneMgr.UpdateQueuedRequests ();
+						UpdateQueuedRequests ();						
 						
 						//eh, this depends on the frame time through, I will need to switch this to time #TODO
 						//Every so often, tick object down
@@ -185,6 +166,16 @@ namespace AssemblyCSharp
 						} else {
 								frameCounter++;
 						}
+				}
+
+				public int GetCurrentScore ()
+				{
+						return scene.GetCurrentScore ();
+				}
+
+				public List<LeaderboardScore> GetCurrentHighScores ()
+				{
+						return mLeaderboard.GetHighScores ();
 				}
 		}
 }

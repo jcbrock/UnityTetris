@@ -17,42 +17,38 @@ namespace AssemblyCSharp
 		//The SceneManager class is responsible for
 		// - game state
 		// - manipulating the current falling shape (translate, rotate, compute AI path)		
-		public class SceneManager
+		public class SceneManager : UnityEngine.MonoBehaviour
 		{
-				enum GameState
-				{
-						None,
-						Paused,
-						Running
-				}							
+									
 
-				//For these member variables surfaced outside of class, only expose as read-only				
-				public List<LeaderboardScore> HighScores { get { return mHighScores; } }
-				public int PlacedBlockCount { get { return mPlacedBlockCount; } }
-		
+				//For these member variables surfaced outside of class, only expose as read-only												
+				private List<AssemblyCSharp.ISceneObserver> registeredObservers = new List<AssemblyCSharp.ISceneObserver> ();
 				private ShapeFactory mFactory; //todo - message passing to factor? or overkill? or not worth cuz I need to wait on it to return before I start again
 				private Shape mCurrentShape;
-				private Shape mPreviewShape;
-				private List<LeaderboardScore> mHighScores = new List<LeaderboardScore> (); //todo
+				private Shape mPreviewShape;				
 				private int mPlacedBlockCount = 0;				
 				private System.Collections.ArrayList mListOfShapes = new System.Collections.ArrayList (); //used for updating the UI
 				private static int mColumnCount = 8; //todo - handle game initialization better, more modular
 				private static int mRowCount = 24;// todo - pass in from somewhere
 				private TetrisBitArray mSceneGrid = new TetrisBitArray (mRowCount, mColumnCount);
-				private Leaderboard mLeaderboard = new Leaderboard (); //todo?		
+				
 				private Queue<UnityTetris.SceneRequestInfo> mRequestQueue = new Queue<UnityTetris.SceneRequestInfo> ();
 				private GameState mCurrentGameState;				
 				private int mRowTarget = 1;
 				private int mColumnTarget = -1;
 				private static int debugId = 0; //Used to make debug print statements unique
 
-				private AI aiManager = new AI ();
+				//private AI aiManager = new AI ();
 				
 				public SceneManager ()
 				{
-						mFactory = new ShapeFactory ();
-						mHighScores = mLeaderboard.LoadLeaderboardScores ();
+							
 				}		
+
+				void Start ()
+				{
+						mFactory = new ShapeFactory ();				
+				}
 
 				public void SendSceneRequest (UnityTetris.SceneRequestInfo request)
 				{
@@ -95,12 +91,20 @@ namespace AssemblyCSharp
 						
 				private void HandleTranslateRequest (UnityTetris.SceneRequestInfo request)
 				{
+						//If this is true, a fresh game is starting
+						if (mListOfShapes.Count == 0 && mCurrentShape == null && mPlacedBlockCount == 0) {
+								//mCurrentShape = mFactory.SpawnRandomizedTetrisShape ();
+								//mCurrentShape.TranslateToInitialPlacement ();										
+								//mPreviewShape = mFactory.SpawnRandomizedTetrisShape ();																				
+								mCurrentGameState = GameState.Running;
+						}
+
 						if (mCurrentGameState == GameState.Paused || mCurrentShape == null)
 								return;							
 						
 						UnityEngine.Vector3 movementVector = request.translationData.movementVector;
 						
-						if (request.AIModeOn) {
+						/*if (request.AIModeOn) {
 								if (mRowTarget <= 0 && mColumnTarget >= 0) {
 										List<Coordinate> rowCols = mCurrentShape.GetCurrentGridPosition ();																																	
 										if (mColumnTarget < rowCols [0].column)
@@ -112,62 +116,66 @@ namespace AssemblyCSharp
 								mRowTarget = 1;
 								mColumnTarget = -1;
 
-						}
+						}*/
 
-						if (AssemblyCSharp.UnityTetris.sceneMgr.mCurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
-								//m_CurrentShape.PlayCollisionAudio ();
-								++mPlacedBlockCount;
-								mListOfShapes.Add (mCurrentShape);											
-								AddCurrentShapeToSceneBitGrid (true);
-								mSceneGrid.UpdateRowBytes ();									
-				
-								//Handle game end condition
-								if (AssemblyCSharp.UnityTetris.sceneMgr.mCurrentShape.CheckCollisionWithTopWall (0, 0)) {
-										UnityEngine.GameObject.Find ("background").audio.Play ();
-										//EndGame ();
-										//todo - fix
-										UnityTetris.SceneRequestInfo request2 = new UnityTetris.SceneRequestInfo ();
-										request2.gameStateData.changeGameStateTo = AssemblyCSharp.ChangeGameState.EndGame;
-										HandleChangeGameStateRequest (request2);
-										return;
-								}
-												
-								mSceneGrid.PrintBitArray ();
-				
-								//Detect full rows and delete/shift
-								List<int> fullRows = mSceneGrid.GetFullRows (); //it'll be ordered 0 to 24
-				
-								//Delete full rows in UI and in the grid
-								foreach (int row in fullRows) {										
-										UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now..." + ++debugId);
-										DeleteRowInUI (row + 1); //need to -1 because row positions for the shapes are -1 to -25, not 0 to -24, gets converted to negative in func
-										mSceneGrid.DeleteRow (row);
-								}
-				
-								//Switch to previewed Shape and generate a new one															
-								mCurrentShape = mPreviewShape;																
-								mCurrentShape.TranslateToInitialPlacement ();
-								mPreviewShape = mFactory.SpawnRandomizedTetrisShape ();																			
+						//if (mCurrentShape.CheckCollisionWithBotWall (movementVector) || DoAnyShapesCollideInScene (movementVector)) {
+						//m_CurrentShape.PlayCollisionAudio ();
+						++mPlacedBlockCount;
 								
-								//If AI is turned on, calculate the best move for this new shape
-								if (request.AIModeOn) {
-										AIPlacementEval bestMove = aiManager.GetBestMove (mCurrentShape, mSceneGrid);								
-										if (bestMove != null) {
-												mRowTarget = bestMove.row;
-												mColumnTarget = bestMove.column;
-												for (int rot = 0; rot < bestMove.numberOfRotations; ++rot) {
-														mCurrentShape.Rotate ();
-												}
-										
-												UnityEngine.Debug.Log (++debugId + "score: " + bestMove.score + " rowTarget: " + bestMove.row + " columnTarget: " + bestMove.column + " rotation: " + bestMove.numberOfRotations);
-										}
-								}
-								//myB.PrintBitArray ();
+						mListOfShapes.Add (mCurrentShape);											
+						AddCurrentShapeToSceneBitGrid (true);
+						mSceneGrid.UpdateRowBytes ();									
 				
-						} else if (!AssemblyCSharp.UnityTetris.sceneMgr.mCurrentShape.CheckCollisionWithLeftWall (movementVector) &&
-								!AssemblyCSharp.UnityTetris.sceneMgr.mCurrentShape.CheckCollisionWithRightWall (movementVector)) {										
-								mCurrentShape.translate (movementVector);
+						//Handle game end condition
+						//if (mCurrentShape.CheckCollisionWithTopWall (0, 0)) {
+						UnityEngine.GameObject.Find ("background").audio.Play ();
+						NotifyObservers (mPlacedBlockCount, GameState.Ended);
+						//EndGame ();
+						//todo - fix
+						//	UnityTetris.SceneRequestInfo request2 = new UnityTetris.SceneRequestInfo ();
+						//	request2.gameStateData.changeGameStateTo = AssemblyCSharp.ChangeGameState.EndGame;
+						//HandleChangeGameStateRequest (request2);
+						return;
+						//}
+												
+						NotifyObservers (mPlacedBlockCount);
+
+						mSceneGrid.PrintBitArray ();
+				
+						//Detect full rows and delete/shift
+						List<int> fullRows = mSceneGrid.GetFullRows (); //it'll be ordered 0 to 24
+				
+						//Delete full rows in UI and in the grid
+						foreach (int row in fullRows) {										
+								UnityEngine.Debug.Log ("Row " + row + " is full. Deleting now..." + ++debugId);
+								DeleteRowInUI (row + 1); //need to -1 because row positions for the shapes are -1 to -25, not 0 to -24, gets converted to negative in func
+								mSceneGrid.DeleteRow (row);
 						}
+				
+						//Switch to previewed Shape and generate a new one															
+						mCurrentShape = mPreviewShape;																
+						mCurrentShape.TranslateToInitialPlacement ();
+						//mPreviewShape = mFactory.SpawnRandomizedTetrisShape ();																			
+								
+						//If AI is turned on, calculate the best move for this new shape
+						/*if (request.AIModeOn) {
+								AIPlacementEval bestMove = aiManager.GetBestMove (mCurrentShape, mSceneGrid);								
+								if (bestMove != null) {
+										mRowTarget = bestMove.row;
+										mColumnTarget = bestMove.column;
+										for (int rot = 0; rot < bestMove.numberOfRotations; ++rot) {
+												mCurrentShape.Rotate ();
+										}
+										
+										UnityEngine.Debug.Log (++debugId + "score: " + bestMove.score + " rowTarget: " + bestMove.row + " columnTarget: " + bestMove.column + " rotation: " + bestMove.numberOfRotations);
+								}
+						}*/
+						//myB.PrintBitArray ();
+				
+						//} //else if (!mCurrentShape.CheckCollisionWithLeftWall (movementVector) &&
+						//		!mCurrentShape.CheckCollisionWithRightWall (movementVector)) {										
+						//		mCurrentShape.translate (movementVector);
+						//}
 				}
 				private void HandleRotateRequest (UnityTetris.SceneRequestInfo request)
 				{
@@ -176,7 +184,7 @@ namespace AssemblyCSharp
 				}
 				private void HandleChangeGameStateRequest (UnityTetris.SceneRequestInfo request)
 				{
-						switch (request.gameStateData.changeGameStateTo) {
+						/*switch (request.gameStateData.changeGameStateTo) {
 						case AssemblyCSharp.ChangeGameState.ClearGame:
 								{
 										foreach (Shape s in mListOfShapes) {
@@ -202,7 +210,7 @@ namespace AssemblyCSharp
 										mCurrentGameState = GameState.Running;
 										break;
 								}
-						case AssemblyCSharp.ChangeGameState.StartGame:
+						/*case AssemblyCSharp.ChangeGameState.StartGame:
 								{
 										mCurrentShape = mFactory.SpawnRandomizedTetrisShape ();
 										mCurrentShape.TranslateToInitialPlacement ();										
@@ -211,13 +219,22 @@ namespace AssemblyCSharp
 										break;
 								}
 						case AssemblyCSharp.ChangeGameState.EndGame:
-								{															
-										mLeaderboard.SaveLeaderboardScores (mPlacedBlockCount);
-										mHighScores = mLeaderboard.LoadLeaderboardScores ();												
+								{		
+										foreach (Shape s in mListOfShapes) {
+												s.DeleteShape ();
+										}
+										if (mCurrentShape != null)
+												mCurrentShape.DeleteShape ();
+										if (mPreviewShape != null)
+												mPreviewShape.DeleteShape ();
+										mSceneGrid.ClearGrid ();
+										mListOfShapes.Clear ();						
+										mCurrentShape = null;
+										mPlacedBlockCount = 0;										
 										mCurrentGameState = GameState.Paused;
 										break;													
 								}
-						}				
+						}	*/			
 				}
 						
 				public void AddCurrentShapeToSceneBitGrid (bool val)
@@ -262,5 +279,25 @@ namespace AssemblyCSharp
 								s2.ShiftBlocksAboveDeletedRow (row * -1);										
 						}
 				}
+		
+
+				public void RegisterObserver (AssemblyCSharp.ISceneObserver observer)
+				{
+						registeredObservers.Add (observer);
+				}
+				public void UnregisterObserver (AssemblyCSharp.ISceneObserver observer)
+				{
+						registeredObservers.Remove (observer);
+				}
+				private void NotifyObservers (int currentPlacedShapeCount)
+				{
+						NotifyObservers (currentPlacedShapeCount, GameState.None);	
+				}
+				private void NotifyObservers (int currentPlacedShapeCount, GameState gameState)
+				{
+						foreach (AssemblyCSharp.ISceneObserver observer in registeredObservers) {
+								observer.notify (new GameInfoPacket (currentPlacedShapeCount, gameState));
+						}		
+				}	
 		}
 }

@@ -10,9 +10,9 @@
 using System;
 namespace AssemblyCSharp
 {
-		public interface IMenuObserver
+		public interface ISceneRulesObserver
 		{
-				void notify (AssemblyCSharp.ChangeGameState newState);
+				void notify (SceneInfo newSceneInformation);
 		}
 }
 
