@@ -1,0 +1,5 @@
+//Cap frame time if needed (cut AI calculations short probably)
+// - i.e Add throttling to message processing in UnityTetris?
+//Seperate UI / Graphics more from the underlying shapes/classes
+// - i.e. don't hit UI to lookup shape positions, track that internally
+//Fix magic number for the preview shape location
