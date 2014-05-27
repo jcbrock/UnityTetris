@@ -7,7 +7,7 @@ namespace AssemblyCSharp
 				//For these member variables surfaced outside of class, only expose as read-only																
 				public Shape CurrentShape { get { return mCurrentShape; } } //Exposing for AI class
 				public TetrisGrid TetrisGrid { get { return mTetrisGrid; } } //Exposing for AI class
-				private Shape mCurrentShape; //temp pbulic
+				private Shape mCurrentShape;
 				private Shape mPreviewShape;				
 				private TetrisGrid mTetrisGrid = new TetrisGrid ();
 				private ShapeFactory mFactory = new ShapeFactory ();				
@@ -28,9 +28,8 @@ namespace AssemblyCSharp
 						//Move current shape
 						mTetrisGrid.HandleTranslateRequest (mCurrentShape, movementVector);
 
-						//Check for end game condition						
-						if (mTetrisGrid.GetHighestRowContainingBlock () == 0) {								
-								//mIsGameOver = true;		
+						//Check for end game condition
+						if (mTetrisGrid.GetRowBlockCount (0) > 0) {																
 								NotifyObservers (ClassicTetrisStateUpdate.GameEnded);
 								return;
 						}
@@ -45,7 +44,7 @@ namespace AssemblyCSharp
 								}											
 
 								mCurrentShape = mPreviewShape;																
-								mCurrentShape.TranslateToInitialPlacement ();//todo - hmmmm
+								mCurrentShape.TranslateToInitialPosition ();
 								mPreviewShape = mFactory.SpawnRandomizedTetrisShape (mRulesetOption);	
 								NotifyObservers (ClassicTetrisStateUpdate.GeneratedNewShape);
 						}
@@ -61,7 +60,7 @@ namespace AssemblyCSharp
 						mTetrisGrid.Initialize (rowCount, columnCount);
 						mRulesetOption = rulesetOption;
 						mCurrentShape = mFactory.SpawnRandomizedTetrisShape (mRulesetOption);
-						mCurrentShape.TranslateToInitialPlacement ();										
+						mCurrentShape.TranslateToInitialPosition ();										
 						mPreviewShape = mFactory.SpawnRandomizedTetrisShape (mRulesetOption);																				
 				}
 
@@ -73,12 +72,13 @@ namespace AssemblyCSharp
 								mPreviewShape.DeleteShape ();													
 						mCurrentShape = null;
 						mPreviewShape = null;
-						mTetrisGrid.Finalize2 ();
+						mTetrisGrid.Cleanup ();
 				}
 
 				public void RegisterObserver (AssemblyCSharp.IClassicTetrisStateObserver observer)
 				{
-						mRegisteredObservers.Add (observer);
+						if (!mRegisteredObservers.Contains (observer))
+								mRegisteredObservers.Add (observer);
 				}
 				public void UnregisterObserver (AssemblyCSharp.IClassicTetrisStateObserver observer)
 				{

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
+public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver, AssemblyCSharp.IClassicTetrisStateObserver
 {
 		private delegate void MenuDelegate ();
 		private MenuDelegate menuFunction;
@@ -16,7 +16,7 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 		private float mScreenWidth;
 		private float mButtonHeight;
 		private float mButtonWidth;				
-		private AssemblyCSharp.UnityTetris mTetrisGame;
+		private AssemblyCSharp.UnityTetris mUnityTetris;
 		private List<AssemblyCSharp.LeaderboardScore> mHighScoresCache; //this is so we don't have to compute highest 5 scores every frame
 		private List<AssemblyCSharp.IMenuObserver> mRegisteredObservers = new List<AssemblyCSharp.IMenuObserver> ();
 
@@ -36,8 +36,9 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 				GameObject go = GameObject.Find ("GameObject");
 				AssemblyCSharp.PlayerControl inputController = (AssemblyCSharp.PlayerControl)go.GetComponent (typeof(AssemblyCSharp.PlayerControl));
 				inputController.RegisterObserver (this);
-				mTetrisGame = (AssemblyCSharp.UnityTetris)go.GetComponent (typeof(AssemblyCSharp.UnityTetris));								
-				mHighScoresCache = mTetrisGame.GetCurrentHighScores ().Take (5).ToList ();						
+				mUnityTetris = (AssemblyCSharp.UnityTetris)go.GetComponent (typeof(AssemblyCSharp.UnityTetris));				
+
+				mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();						
 		}
 
 		private void OnGUI ()
@@ -51,12 +52,14 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 		                                                     mButtonWidth, mButtonHeight), "Start New Game")) {
 						//make sure to kick off new game
 						menuFunction = inGameHUD;
+						NotifyObservers (AssemblyCSharp.GameState.Ended);
 						NotifyObservers (AssemblyCSharp.GameState.Running);						
 				}
 				if (GUI.Button (new Rect ((mScreenWidth - mButtonWidth) * 0.5f, mScreenHeight * 0.5f, 
 		                        mButtonWidth, mButtonHeight), "Quit Game")) {
 						Application.Quit ();
 				}
+				mUnityTetris.Scene.RegisterObserver (this);
 				AddLeaderboard ();
 		
 		}
@@ -103,7 +106,7 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 		{
 				GUI.Label (new Rect (mScreenWidth * 0.8f, mScreenHeight * 0.1f, 
 		                     mScreenWidth * 0.2f, mScreenHeight * 0.1f), 
-		           "Placed blocks: " + mTetrisGame.GetCurrentScore ());
+		           "Placed blocks: " + mUnityTetris.GetCurrentScore ());
 		}
 
 		private void inGameHUD ()
@@ -117,10 +120,17 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver
 				UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
 				if (pressedKey == KeyCode.Escape) {
 						menuFunction = mainMenuWithResume;
-						mHighScoresCache = mTetrisGame.GetCurrentHighScores ().Take (5).ToList ();						
+						mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();						
 						NotifyObservers (AssemblyCSharp.GameState.Paused);
 				}
 		}
+		void AssemblyCSharp.IClassicTetrisStateObserver.notify (AssemblyCSharp.ClassicTetrisStateUpdate stateUpdate)
+		{					
+				if (stateUpdate == AssemblyCSharp.ClassicTetrisStateUpdate.GameEnded) {
+						menuFunction = mainMenu;
+						mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();												
+				}
+		}		
 
 		public void RegisterObserver (AssemblyCSharp.IMenuObserver observer)
 		{

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,13 +21,62 @@ namespace AssemblyCSharp
 						mUnityTetris = (UnityTetris)go.GetComponent (typeof(UnityTetris));
 						mUnityTetris.Scene.RegisterObserver (this);
 				}
+
+				//Handle updates from the Scene and Input
+				void IClassicTetrisStateObserver.notify (ClassicTetrisStateUpdate stateUpdate)
+				{					
+						if (stateUpdate == ClassicTetrisStateUpdate.GeneratedNewShape && mAIModeOn) {						
+								ComputeAIForCurrentPiece ();
+						}
+				}
+				void AssemblyCSharp.IInputObserver.notify (UnityEngine.KeyCode pressedKey)
+				{											
+						if (pressedKey == KeyCode.A) {							
+								mAIModeOn = !mAIModeOn;
+								UnityEngine.Debug.Log ("AI mode is turned on: " + mAIModeOn.ToString ());
+								if (mAIModeOn)
+										ComputeAIForCurrentPiece ();
+						}
+				}
+
+				//Computes the best move for the current shape and sends those translation requests to the scene
+				private void ComputeAIForCurrentPiece ()
+				{
+						AIMoveEvaluation bestMove = GetBestMove (mUnityTetris.Scene);
+			
+						if (bestMove == null) {
+								UnityEngine.Debug.LogWarning ("Couldn't compute BestMove for some reason");
+								return;
+						}
+						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
+						for (int rot = 0; rot < bestMove.NumberOfRotations; ++rot) {
+								mUnityTetris.Rotate ();
+						}
+			
+						AssemblyCSharp.Coordinate anchor = mUnityTetris.Scene.CurrentShape .GetAnchorCoordinate ();
+						if (bestMove.Column < anchor.column) {
+								int moveLeftCount = anchor.column - bestMove.Column;								
+								UnityEngine.Debug.Log (++mDebugId + "Start column: " + anchor.column + " Added " + moveLeftCount + " translate lefts");
+								for (int i = 0; i < moveLeftCount; ++i) {
+										mUnityTetris.Translate (new Vector3 (-1, 0, 0));
+								}
+						}
+						if (bestMove.Column > anchor.column) {
+								int moveRightCount = bestMove.Column - anchor.column;								
+								UnityEngine.Debug.Log (++mDebugId + "Start column: " + anchor.column + " Added " + moveRightCount + " translate rights");
+								for (int i = 0; i < moveRightCount; ++i) {
+										mUnityTetris.Translate (new Vector3 (1, 0, 0));
+								}
+						}						
+						UnityEngine.Debug.Log (++mDebugId + "score: " + bestMove.Score + " rowTarget: " + bestMove.Row + " columnTarget: " + bestMove.Column + " rotation: " + bestMove.NumberOfRotations);
+				}
 	
 				private AIMoveEvaluation GetBestMove (ClassicTetrisRules scene)
 				{						
 						List<AssemblyCSharp.AIMoveEvaluation> possibleScores = new List<AIMoveEvaluation> ();		
 						
 						//For each column, compute score if we let the piece fall in this column (for each rotation of the piece too)
-						AssemblyCSharp.Coordinate anchor = scene.CurrentShape .GetAnchorCoordinate ();
+						AssemblyCSharp.Coordinate anchor = scene.CurrentShape.GetAnchorCoordinate ();
 						int shiftedColumnIndex = anchor.column * -1;								
 						for (int j = shiftedColumnIndex; j < (shiftedColumnIndex + scene.TetrisGrid.ColumnCount); ++j) {
 								for (int i = 0; i < 4; ++i) {
@@ -139,54 +188,6 @@ namespace AssemblyCSharp
 				
 						}
 						return score;
-				}
-
-				private void ComputeAIForCurrentPiece ()
-				{
-						AIMoveEvaluation bestMove = GetBestMove (mUnityTetris.Scene);
-			
-						if (bestMove == null) {
-								UnityEngine.Debug.LogWarning ("Couldn't compute BestMove for some reason");
-								return;
-						}
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
-						for (int rot = 0; rot < bestMove.NumberOfRotations; ++rot) {
-								mUnityTetris.Rotate ();
-						}
-			
-						AssemblyCSharp.Coordinate anchor = mUnityTetris.Scene.CurrentShape .GetAnchorCoordinate ();
-						if (bestMove.Column < anchor.column) {
-								int moveLeftCount = anchor.column - bestMove.Column;								
-								UnityEngine.Debug.Log (++mDebugId + "Start column: " + anchor.column + " Added " + moveLeftCount + " translate lefts");
-								for (int i = 0; i < moveLeftCount; ++i) {
-										mUnityTetris.Translate (new Vector3 (-1, 0, 0));
-								}
-						}
-						if (bestMove.Column > anchor.column) {
-								int moveRightCount = bestMove.Column - anchor.column;								
-								UnityEngine.Debug.Log (++mDebugId + "Start column: " + anchor.column + " Added " + moveRightCount + " translate rights");
-								for (int i = 0; i < moveRightCount; ++i) {
-										mUnityTetris.Translate (new Vector3 (1, 0, 0));
-								}
-						}						
-						UnityEngine.Debug.Log (++mDebugId + "score: " + bestMove.Score + " rowTarget: " + bestMove.Row + " columnTarget: " + bestMove.Column + " rotation: " + bestMove.NumberOfRotations);
-				}
-
-				//Handle updates from the Scene and Input
-				void IClassicTetrisStateObserver.notify (ClassicTetrisStateUpdate stateUpdate)
-				{					
-						if (stateUpdate == ClassicTetrisStateUpdate.GeneratedNewShape && mAIModeOn) {						
-								ComputeAIForCurrentPiece ();
-						}
-				}
-				void AssemblyCSharp.IInputObserver.notify (UnityEngine.KeyCode pressedKey)
-				{											
-						if (pressedKey == KeyCode.A) {							
-								mAIModeOn = !mAIModeOn;
-								UnityEngine.Debug.Log ("AI mode is turned on: " + mAIModeOn.ToString ());
-								if (mAIModeOn)
-										ComputeAIForCurrentPiece ();
-						}
-				}
+				}					
 		}
 }

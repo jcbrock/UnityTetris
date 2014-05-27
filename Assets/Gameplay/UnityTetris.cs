@@ -6,10 +6,11 @@ namespace AssemblyCSharp
 		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver, IClassicTetrisStateObserver
 		{			
 				private const float USER_GAME_SPEED = .15f;
-				private const float AI_GAME_SPEED = .01f;
+				private const float AI_GAME_SPEED = .02f;
+				private const int SHAPE_RULESET_OPTION = 0;
 
 				public ClassicTetrisRules Scene { get { return mScene; } } //Exposing for AI class			
-				private ClassicTetrisRules mScene; //can make private?
+				private ClassicTetrisRules mScene;
 				private Queue<GameRequest> mRequestQueue = new Queue<GameRequest> ();												
 				private GameState mCurrentGameState = GameState.None;				
 				private float mTickFrequency = USER_GAME_SPEED;				
@@ -27,7 +28,25 @@ namespace AssemblyCSharp
 						inputController.RegisterObserver (this);										
 						DelegateMenu gameStateController = (DelegateMenu)go.GetComponent (typeof(DelegateMenu));
 						gameStateController.RegisterObserver (this);
-				}										
+				}
+
+				// Capture frame-per-second
+				//int lastFrameCount = 0;
+				//float lastTime = 0;			
+				float timeSinceLastTranslate = 0;			
+				void Update ()
+				{									
+						UpdateQueuedRequests ();						
+									
+						if (mCurrentGameState == GameState.Running && (Time.realtimeSinceStartup - timeSinceLastTranslate) > mTickFrequency) {
+								Translate (new Vector3 (0, -1f, 0));
+								timeSinceLastTranslate = Time.realtimeSinceStartup;
+						}
+			
+						//UnityEngine.Debug.Log ("FPS: " + Mathf.RoundToInt ((Time.frameCount - lastFrameCount) / (Time.realtimeSinceStartup - lastTime)));
+						//lastFrameCount = Time.frameCount;
+						//lastTime = Time.realtimeSinceStartup;
+				}	
 						
 				public void Translate (Vector3 movementVector)
 				{		
@@ -65,7 +84,7 @@ namespace AssemblyCSharp
 						if (mRequestQueue.Count == 0)
 								return;
 			
-						GameRequest request = mRequestQueue.Dequeue (); //TODO - throttle?
+						GameRequest request = mRequestQueue.Dequeue ();
 
 						switch (request.type) {
 						case GameRequest.Type.RotateShapeRequest:
@@ -97,7 +116,7 @@ namespace AssemblyCSharp
 						UnityEngine.Debug.Log (" currentGameState: " + mCurrentGameState.ToString () + " request.newGameState: " + request.newGameState.ToString ());
 						if (request.newGameState == AssemblyCSharp.GameState.Running && 
 								((mCurrentGameState & (AssemblyCSharp.GameState.None | AssemblyCSharp.GameState.Ended)) != 0)) {
-								mScene.Initialize (24, 8, 0); //start new game
+								mScene.Initialize (24, 8, SHAPE_RULESET_OPTION); //start new game
 						}
 						if (request.newGameState == AssemblyCSharp.GameState.Ended) {
 								mLeaderboard.AddHighScore (mScene.GetCurrentScore ());
@@ -148,25 +167,6 @@ namespace AssemblyCSharp
 				{					
 						if (stateUpdate == ClassicTetrisStateUpdate.GameEnded)
 								mCurrentGameState = AssemblyCSharp.GameState.Ended;
-				}
-		
-				// Capture frame-per-second
-				//int lastFrameCount = 0;
-				//float lastTime = 0;			
-				float timeSinceLastTranslate = 0;			
-				void Update ()
-				{									
-						UpdateQueuedRequests ();						
-						
-						//TODO - cap frame time if needed (cut AI calculations short probably)
-						if (mCurrentGameState == GameState.Running && (Time.realtimeSinceStartup - timeSinceLastTranslate) > mTickFrequency) {
-								Translate (new Vector3 (0, -1f, 0));
-								timeSinceLastTranslate = Time.realtimeSinceStartup;
-						}
-									
-						//UnityEngine.Debug.Log ("FPS: " + Mathf.RoundToInt ((Time.frameCount - lastFrameCount) / (Time.realtimeSinceStartup - lastTime)));
-						//lastFrameCount = Time.frameCount;
-						//lastTime = Time.realtimeSinceStartup;
-				}	
+				}					
 		}
 }

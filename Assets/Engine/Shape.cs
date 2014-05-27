@@ -6,9 +6,7 @@ namespace AssemblyCSharp
 {		
 		public class Shape
 		{	
-				public string Name; //for debugging
-				public UnityEngine.GameObject CompositeGameObject { get { return mCompositeGameObject; } } //TODO Exposing for AI class do I want to expose this? currently exposing due to factory and need to create in UI
-				public RotationStyles RotationStyle { get { return mRotationStyle; } } //TODO Exposing for AI class do I want to expose this? currently exposing due to factory and need to create in UI
+				public string Name; //for debugging				
 				private UnityEngine.GameObject mCompositeGameObject;
 				private RotationStyles mRotationStyle;
 				private bool mFlipRotation = true;
@@ -30,7 +28,18 @@ namespace AssemblyCSharp
 						mInitialXPos = initialXPos;
 						mRotationStyle = rotationStyle;
 				}
-	
+
+				public Shape Clone (UnityEngine.Vector3 previewLocation, float initialXPos, string name)
+				{
+			
+						UnityEngine.GameObject newGameObject = (UnityEngine.GameObject)UnityEngine.MonoBehaviour.Instantiate (mCompositeGameObject,
+			                                                                                               previewLocation,
+			                                                                                               UnityEngine.Quaternion.identity);
+						newGameObject.name += name;
+						return new Shape (newGameObject, mRotationStyle, initialXPos);
+				}
+
+
 				//debug func
 				public void ShadeSubBlock (int blockIndex)
 				{
@@ -54,7 +63,7 @@ namespace AssemblyCSharp
 				public int DeleteBlocksInRow (int row)
 				{
 						for (int i = 0; i < mCompositeGameObject.transform.childCount; ++i) {
-								if (Convert.ToInt32 (Math.Floor (mCompositeGameObject.transform.GetChild (i).transform.position.y)) == row) {
+								if (Convert.ToInt32 (Math.Ceiling (mCompositeGameObject.transform.GetChild (i).transform.position.y)) == row) {
 										UnityEngine.GameObject.Destroy (mCompositeGameObject.transform.GetChild (i).gameObject);
 										--mBlockCount;
 								}
@@ -62,16 +71,16 @@ namespace AssemblyCSharp
 						return mBlockCount;
 				}
 
-				public void TranslateToInitialPlacement ()
+				public void TranslateToInitialPosition ()
 				{
-						translate (mInitialXPos + 5, 0, 0); //TODO - replace 5 with preview translate variable
+						Translate (mInitialXPos + 5, 0, 0); //todo - fix magic number of 5 (the x distance of the preview shape location)
 				}
 
 				public bool ShiftBlocksAboveDeletedRow (int row)
 				{
 						bool shiftedSomethingDown = false;
 						for (int i = 0; i < mCompositeGameObject.transform.childCount; ++i) {
-								if (Convert.ToInt32 (Math.Floor (mCompositeGameObject.transform.GetChild (i).transform.position.y)) > row) {
+								if (Convert.ToInt32 (Math.Ceiling (mCompositeGameObject.transform.GetChild (i).transform.position.y)) > row) {
 										mCompositeGameObject.transform.GetChild (i).transform.Translate (new UnityEngine.Vector3 (0, -1, 0), UnityEngine.Space.World);
 										shiftedSomethingDown = true;
 								}
@@ -114,15 +123,15 @@ namespace AssemblyCSharp
 						mCompositeGameObject.audio.Play ();
 				}
 
-				public void translate (float x, float y, float z)
+				public void Translate (float x, float y, float z)
 				{
-						translateInWorldSpace (new UnityEngine.Vector3 (x, y, z));								
+						TranslateInWorldSpace (new UnityEngine.Vector3 (x, y, z));								
 				}
-				public void translate (UnityEngine.Vector3 vec)
+				public void Translate (UnityEngine.Vector3 vec)
 				{
-						translateInWorldSpace (vec);
+						TranslateInWorldSpace (vec);
 				}
-				private void translateInWorldSpace (UnityEngine.Vector3 vec)
+				private void TranslateInWorldSpace (UnityEngine.Vector3 vec)
 				{
 						mCompositeGameObject.transform.Translate (vec, UnityEngine.Space.World);
 				}				
@@ -138,21 +147,16 @@ namespace AssemblyCSharp
 						}
 						return rows;
 				}
-
-				//TODO - I probably shouldn't hit the UI for these positions...
+						
 				public List<Coordinate> GetCurrentGridPosition ()
 				{
 						List<Coordinate> blocks = new List<Coordinate> ();
 						List<KeyValuePair<int, int>> rows = new List<KeyValuePair<int, int>> ();
-						for (int i = 0; i < mCompositeGameObject.transform.childCount; ++i) {
-				
-								
+						for (int i = 0; i < mCompositeGameObject.transform.childCount; ++i) {											
 								double rowValue = mCompositeGameObject.transform.GetChild (i).transform.position.y;
 								double colValue = mCompositeGameObject.transform.GetChild (i).transform.position.x;
-								//UnityEngine.Debug.Log ("Block row value: " + rowValue.ToString ());
-								//rows.Add (Convert.ToInt32 (Math.Floor (rowValue)));
-								//rows -> ceiling cuz they are negative, cols -> floor cuz they are positive
-								//rows.Add (new KeyValuePair<int, int> ());
+															
+								//rows -> ceiling because they are negative, cols -> floor because they are positive								
 								blocks.Add (new Coordinate (Convert.ToInt32 (Math.Ceiling (rowValue)), Convert.ToInt32 (Math.Floor (colValue))));
 						}
 						return blocks;

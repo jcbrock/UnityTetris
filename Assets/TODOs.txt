@@ -1,4 +1,5 @@
 //Cap frame time if needed (cut AI calculations short probably)
-//Clean up DeleteRow in TetrisBitArray
-//Clean up Shape / ShapeFactory / ShapeRuleset classes...
-//Clean up TetrisGrid class
+// - i.e Add throttling to message processing in UnityTetris?
+//Seperate UI / Graphics more from the underlying shapes/classes
+// - i.e. don't hit UI to lookup shape positions, track that internally
+//Fix magic number for the preview shape location

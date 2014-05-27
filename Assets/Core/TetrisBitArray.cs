@@ -9,12 +9,16 @@ namespace AssemblyCSharp
 		// - deleting full rows
 		// - updating internal bit array
 		public class TetrisBitArray
-		{
-				private byte[] mRowBytes;
-				private BitArray mBitArray;				
+		{				
+				private BitArray mBitArray;
+				private byte[] mRowBytes; //A grouping of 8 bits, used to make things like detecting a full row easier
 				private int mRowCount;
 				private int mColumnCount;
 				private static int mDebugId = 0; //Used to make debug print statements unique
+
+				private TetrisBitArray ()
+				{
+				}
 
 				public TetrisBitArray (int rowCount, int columnCount)
 				{
@@ -74,7 +78,7 @@ namespace AssemblyCSharp
 								TetrisBitArray fullRowMask = new TetrisBitArray (mRowCount, mColumnCount);
 								fullRowMask.mRowBytes [i] = Byte.MaxValue;
 								fullRowMask.UpdateBitArrayBasedOnRowBytes ();				
-								BitArray clone = (BitArray)this.mBitArray.Clone (); //need to close because AND will modify left-hand arg
+								BitArray clone = (BitArray)this.mBitArray.Clone (); //need to clone because AND will modify left-hand arg
 				
 								if (fullRowMask.Equals (clone.And (fullRowMask.mBitArray)))
 										fullRows.Add (i);
@@ -102,32 +106,61 @@ namespace AssemblyCSharp
 				private int[] ConvertToInts (BitArray bits)
 				{
 						int arraySize = Convert.ToInt32 (Math.Ceiling ((double)(bits.Count / 32)));
-			
-						//TODO - remove debug check
-						if (bits.Count != 192) {
-								UnityEngine.Debug.LogWarning ("Grid length not 192");
-						}
-			
 						int[] ints = new int[arraySize];
 						bits.CopyTo (ints, 0);
 						return ints;
 				}
-		
+
 				public void UpdateRowBytes ()
-				{
-						if (mBitArray.Count != 192) {
-								throw new ArgumentException ("# of bits is wrong for row bytes");
-						}
-						//byte[] bytes = new byte[24];
-						mBitArray.CopyTo (mRowBytes, 0);
-						//return bytes;
+				{						
+						mBitArray.CopyTo (mRowBytes, 0);						
 				}
-				public void UpdateBitArrayBasedOnRowBytes ()
+
+				private void UpdateBitArrayBasedOnRowBytes ()
 				{
 						mBitArray = new BitArray (mRowBytes);
 				}
-		
-		
+				
+				//Delete Row by preserving the rows below the one being deleted, shifting the rows, and then combining those two
+				public void DeleteRow (int row)
+				{
+						row = Math.Abs (row);
+									
+						BitArray preShiftedGrid = (BitArray)this.mBitArray.Clone ();
+						BitArray bottomRowsMask = new BitArray (mColumnCount * mRowCount);
+						for (int i = ((row + 1) * mColumnCount); i < (mRowCount * mColumnCount); ++i) { //bottomRowsMask = everything below full row
+								bottomRowsMask [i] = true; //-192 > -192								
+						}
+									
+						//UnityEngine.Debug.Log ("Before shift" + ++mDebugId);
+						//this.PrintBitArray ();
+			
+						//shift - CAN'T do via mask because I don't have one consecutive array of bits in C#.
+						//They are split up across ints, which makes shifting a bitch - I still have to copy between ints
+						//(last part of int to first part of next int...), so it is easier just to use byte array.
+						for (int i = mRowCount -1; i > 0; --i) {
+								this.mRowBytes [i] = this.mRowBytes [i - 1];
+						}
+						this.mRowBytes [0] = 0; //explicitly set top row to 0s now that we shifted down
+						this.UpdateBitArrayBasedOnRowBytes ();
+												
+						//UnityEngine.Debug.Log ("After shift" + ++mDebugId);
+						//this.PrintBitArray ();
+			
+						BitArray topRowsMask = new BitArray (mColumnCount * mRowCount);
+						for (int i = (((row +1) * mColumnCount)-1); i >= 0; --i) { //includes the full row, and all rows above it
+								topRowsMask [i] = true;
+						}								
+
+						TetrisBitArray ans = new TetrisBitArray (mRowCount, mColumnCount);
+						ans.mBitArray = (preShiftedGrid.And (bottomRowsMask)).Or (this.mBitArray.And (topRowsMask)); //
+						this.mBitArray = ans.mBitArray;
+
+						//UnityEngine.Debug.Log ("Answer" + ++mDebugId);
+						//ans.PrintBitArray ();
+				}
+
+				//Debug function
 				public void PrintBitArray ()
 				{
 						string output = string.Empty;
@@ -144,67 +177,6 @@ namespace AssemblyCSharp
 						}
 						UnityEngine.Debug.Log (output);
 				}
-						
-				public void DeleteRow (int row)
-				{
-						row = Math.Abs (row);
-			
-						//TODO - clean up all extra bit arrays and crap.
-			
-						//row 0 = top row
-						//row 23 = bot row
-						BitArray x = (BitArray)this.mBitArray.Clone ();
-						BitArray yBot = new BitArray (mColumnCount * mRowCount);
-						for (int i = ((row + 1) * mColumnCount); i < (mRowCount * mColumnCount); ++i) { //yBot = everything below full row, hence -1
-								yBot [i] = true; //-192 > -192
-								//-184 > -192, -185 > -192, -186 > 192
-						}
-			
-						//Debug - print stuff
-						TetrisBitArray p2 = new TetrisBitArray (mRowCount, mColumnCount);
-						/*p2.m_data = yBot;
-			++foo;
-			UnityEngine.Debug.Log ("yBot" + foo);
-			p2.PrintBitArray ();*/
-						++mDebugId;
-						UnityEngine.Debug.Log ("Before shift" + mDebugId);
-						this.PrintBitArray ();
-			
-						//shift - CAN'T do via mask because I don't have one consecutive array of bits in C#.
-						//They are split up across ints, which makes shifting a bitch - I still have to copy between ints
-						//(last part of int to first part of next int...), so it is easier just to use byte array.
-						for (int i = mRowCount -1; i > 0; --i) {
-								this.mRowBytes [i] = this.mRowBytes [i - 1];
-						}
-						this.mRowBytes [0] = 0;
-						this.UpdateBitArrayBasedOnRowBytes ();
-			
-						//Debug print stuff
-						++mDebugId;
-						UnityEngine.Debug.Log ("After shift" + mDebugId);
-						this.PrintBitArray ();
-			
-						BitArray yTop = new BitArray (mColumnCount * mRowCount);
-						for (int i = (((row +1) * mColumnCount)-1); i >= 0; --i) { //includes the full row, hence the -1 (+1 is for 0-191, not 1-192)
-								yTop [i] = true;
-						}
-						/*++foo;
-			UnityEngine.Debug.Log ("After yTop construction" + foo);
-
-			//Debug - print
-			MyBitArray p = new MyBitArray (height, m_RowWidth);
-			p.m_data = yTop;
-			++foo;
-			UnityEngine.Debug.Log ("yTop" + foo);
-			p.PrintBitArray ();*/
-						++mDebugId;
-						UnityEngine.Debug.Log ("Answer" + mDebugId);
-			
-						TetrisBitArray ans = new TetrisBitArray (mRowCount, mColumnCount);
-						ans.mBitArray = (x.And (yBot)).Or (this.mBitArray.And (yTop)); //Take bottom or original grid, add it to the top of the shifted down grid
-						ans.PrintBitArray ();
-						this.mBitArray = ans.mBitArray;
-				}	
 		}
 }
 
