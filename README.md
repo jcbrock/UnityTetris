@@ -7,10 +7,15 @@ Controls
 --------
 
 Left Arrow = Move Left
+
 Right Arrow = Move Right
+
 Down Arrow = Move Down
+
 Up Arrow = Rotate
+
 A = Toggle AI
+
 Esc = Pause / Menu
 
 Leaderboard
