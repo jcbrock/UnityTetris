@@ -8,18 +8,18 @@ namespace AssemblyCSharp
 		// - checking which rows are full
 		// - deleting full rows
 		// - updating internal bit array
-		public class TetrisBitArray
+		public class TetrisGrid
 		{				
 				private BitArray mBitArray;
 				private byte[] mRowBytes; //A grouping of 8 bits, used to make things like detecting a full row easier
 				private int mRowCount;
 				private int mColumnCount;				
 
-				private TetrisBitArray ()
+				private TetrisGrid ()
 				{
 				}
 
-				public TetrisBitArray (int rowCount, int columnCount)
+				public TetrisGrid (int rowCount, int columnCount)
 				{
 						mBitArray = new BitArray (rowCount * columnCount);
 						mRowCount = rowCount;
@@ -74,7 +74,7 @@ namespace AssemblyCSharp
 			
 						//Check for full rows using bit masks
 						for (int i = 0; i < mRowCount; ++i) {
-								TetrisBitArray fullRowMask = new TetrisBitArray (mRowCount, mColumnCount);
+								TetrisGrid fullRowMask = new TetrisGrid (mRowCount, mColumnCount);
 								fullRowMask.mRowBytes [i] = Byte.MaxValue;
 								fullRowMask.UpdateBitArrayBasedOnRowBytes ();				
 								BitArray clone = (BitArray)this.mBitArray.Clone (); //need to clone because AND will modify left-hand arg
@@ -151,7 +151,7 @@ namespace AssemblyCSharp
 								topRowsMask [i] = true;
 						}								
 
-						TetrisBitArray ans = new TetrisBitArray (mRowCount, mColumnCount);
+						TetrisGrid ans = new TetrisGrid (mRowCount, mColumnCount);
 						ans.mBitArray = (preShiftedGrid.And (bottomRowsMask)).Or (this.mBitArray.And (topRowsMask)); //
 						this.mBitArray = ans.mBitArray;
 
