@@ -11,7 +11,7 @@ namespace AssemblyCSharp
 				public int PlacedShapeCount { get { return mPlacedShapeCount; } } //Exposing for ClassicTetrisRules class
 				public bool WasShapeAddedToScene { get { return mWasShapeAddedToScene; } } //Exposing for ClassicTetrisRules class
 				private System.Collections.ArrayList mListOfShapes; //used for updating the UI
-				private TetrisBitArray mSceneGrid;
+				private TetrisGrid mSceneGrid;
 				private int mPlacedShapeCount = 0;								
 				private int mColumnCount;
 				private int mRowCount;										
@@ -69,7 +69,7 @@ namespace AssemblyCSharp
 						mColumnCount = columnCount;						
 						mPlacedShapeCount = 0;
 						mListOfShapes = new System.Collections.ArrayList ();
-						mSceneGrid = new TetrisBitArray (mRowCount, mColumnCount);
+						mSceneGrid = new TetrisGrid (mRowCount, mColumnCount);
 				}
 		
 				public void Cleanup ()
