@@ -6,7 +6,7 @@ namespace AssemblyCSharp
 		public class UnityTetris : MonoBehaviour, IInputObserver, IMenuObserver, IClassicTetrisStateObserver
 		{			
 				private const float USER_GAME_SPEED = .15f;
-				private const float AI_GAME_SPEED = .02f;
+				private const float AI_GAME_SPEED = .025f;
 				private const int SHAPE_RULESET_OPTION = 0;
 
 				public ClassicTetrisRules Scene { get { return mScene; } } //Exposing for AI class			
@@ -166,7 +166,7 @@ namespace AssemblyCSharp
 				void IClassicTetrisStateObserver.notify (ClassicTetrisStateUpdate stateUpdate)
 				{					
 						if (stateUpdate == ClassicTetrisStateUpdate.GameEnded)
-								mCurrentGameState = AssemblyCSharp.GameState.Ended;
+								ChangeGameState (AssemblyCSharp.GameState.Ended);
 				}					
 		}
 }

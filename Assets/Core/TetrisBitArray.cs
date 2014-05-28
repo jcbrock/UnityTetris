@@ -13,8 +13,7 @@ namespace AssemblyCSharp
 				private BitArray mBitArray;
 				private byte[] mRowBytes; //A grouping of 8 bits, used to make things like detecting a full row easier
 				private int mRowCount;
-				private int mColumnCount;
-				private static int mDebugId = 0; //Used to make debug print statements unique
+				private int mColumnCount;				
 
 				private TetrisBitArray ()
 				{

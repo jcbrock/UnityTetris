@@ -32,9 +32,11 @@ namespace AssemblyCSharp
 				}
 				private void  LoadHighScores ()
 				{																			
-						string json = mFileHelper.ReadFromFile (@"Leaderboard.txt");							
-						mHighScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
-						mHighScores = mHighScores.OrderByDescending (x => x.Score).ToList ();																			
+						string json = mFileHelper.ReadFromFile (@"Leaderboard.txt");
+						if (!string.IsNullOrEmpty (json)) {
+								mHighScores = JsonConvert.DeserializeObject<List<LeaderboardScore>> (json);
+								mHighScores = mHighScores.OrderByDescending (x => x.Score).ToList ();																			
+						}
 				}
 		}
 }

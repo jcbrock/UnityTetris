@@ -16,8 +16,7 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver, Assemb
 		private float mScreenWidth;
 		private float mButtonHeight;
 		private float mButtonWidth;				
-		private AssemblyCSharp.UnityTetris mUnityTetris;
-		private List<AssemblyCSharp.LeaderboardScore> mHighScoresCache; //this is so we don't have to compute highest 5 scores every frame
+		private AssemblyCSharp.UnityTetris mUnityTetris;		
 		private List<AssemblyCSharp.IMenuObserver> mRegisteredObservers = new List<AssemblyCSharp.IMenuObserver> ();
 
 
@@ -36,9 +35,7 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver, Assemb
 				GameObject go = GameObject.Find ("GameObject");
 				AssemblyCSharp.PlayerControl inputController = (AssemblyCSharp.PlayerControl)go.GetComponent (typeof(AssemblyCSharp.PlayerControl));
 				inputController.RegisterObserver (this);
-				mUnityTetris = (AssemblyCSharp.UnityTetris)go.GetComponent (typeof(AssemblyCSharp.UnityTetris));				
-
-				mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();						
+				mUnityTetris = (AssemblyCSharp.UnityTetris)go.GetComponent (typeof(AssemblyCSharp.UnityTetris));									
 		}
 
 		private void OnGUI ()
@@ -86,19 +83,21 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver, Assemb
 		}
 		private void AddLeaderboard ()
 		{				
-				if (mHighScoresCache.Count != 0) {
+				var highScores = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();
+				if (highScores.Count != 0) {
 						GUI.Label (new Rect (mScreenWidth * 0.75f, mScreenHeight * 0.2f, 
 		                     mScreenWidth * 0.25f, mScreenHeight * 0.1f), 
 		           			 "Leaderboard (score - name)");
 		
 				
-						float height = 0.25f;
-						foreach (AssemblyCSharp.LeaderboardScore score in mHighScoresCache) {
+						float height = 0.25f;						
+						foreach (AssemblyCSharp.LeaderboardScore score in highScores) {
 								GUI.Label (new Rect (mScreenWidth * 0.75f, mScreenHeight * height, 
 			                     	mScreenWidth * 0.25f, mScreenHeight * 0.05f), 
 			           			 	score.Score + " - " + score.Name);
 								height += 0.05f;
 						}
+
 				}
 
 		}
@@ -116,19 +115,17 @@ public class DelegateMenu : MonoBehaviour, AssemblyCSharp.IInputObserver, Assemb
 		}
 
 		void AssemblyCSharp.IInputObserver.notify (UnityEngine.KeyCode pressedKey)
-		{					
-				UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+		{									
 				if (pressedKey == KeyCode.Escape) {
 						menuFunction = mainMenuWithResume;
-						mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();						
+						//mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();						
 						NotifyObservers (AssemblyCSharp.GameState.Paused);
 				}
 		}
 		void AssemblyCSharp.IClassicTetrisStateObserver.notify (AssemblyCSharp.ClassicTetrisStateUpdate stateUpdate)
 		{					
-				if (stateUpdate == AssemblyCSharp.ClassicTetrisStateUpdate.GameEnded) {
-						menuFunction = mainMenu;
-						mHighScoresCache = mUnityTetris.GetCurrentHighScores ().Take (5).ToList ();												
+				if (stateUpdate == AssemblyCSharp.ClassicTetrisStateUpdate.GameEnded) {						
+						menuFunction = mainMenu;						
 				}
 		}		
 

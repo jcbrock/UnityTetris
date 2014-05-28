@@ -98,8 +98,7 @@ namespace AssemblyCSharp
 
 				public void Rotate (bool backwards)
 				{						
-						UnityEngine.Vector3 rotation;	
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, 0, 0);
+						UnityEngine.Vector3 rotation;							
 						switch (mRotationStyle) {
 						case RotationStyles.none:
 								break;
@@ -150,8 +149,7 @@ namespace AssemblyCSharp
 						
 				public List<Coordinate> GetCurrentGridPosition ()
 				{
-						List<Coordinate> blocks = new List<Coordinate> ();
-						List<KeyValuePair<int, int>> rows = new List<KeyValuePair<int, int>> ();
+						List<Coordinate> blocks = new List<Coordinate> ();						
 						for (int i = 0; i < mCompositeGameObject.transform.childCount; ++i) {											
 								double rowValue = mCompositeGameObject.transform.GetChild (i).transform.position.y;
 								double colValue = mCompositeGameObject.transform.GetChild (i).transform.position.x;
@@ -159,8 +157,7 @@ namespace AssemblyCSharp
 								//rows -> ceiling because they are negative, cols -> floor because they are positive								
 								blocks.Add (new Coordinate (Convert.ToInt32 (Math.Ceiling (rowValue)), Convert.ToInt32 (Math.Floor (colValue))));
 						}
-						return blocks;
-						//return rows;
+						return blocks;						
 				}
 						
 				public bool collides (Shape shape, UnityEngine.Vector3 movementVector)

@@ -6,12 +6,12 @@ A simple tetris game built in Unity.
 Controls
 --------
 
-Left Arrow - Move Left
-Right Arrow - Move Right
-Down Arrow - Move Down
-Up Arrow - Rotate
-A - turn on AI
-Esc - Pause / Menu
+Left Arrow = Move Left
+Right Arrow = Move Right
+Down Arrow = Move Down
+Up Arrow = Rotate
+A = Toggle AI
+Esc = Pause / Menu
 
 Leaderboard
 --------

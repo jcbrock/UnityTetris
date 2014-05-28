@@ -47,8 +47,7 @@ namespace AssemblyCSharp
 						if (bestMove == null) {
 								UnityEngine.Debug.LogWarning ("Couldn't compute BestMove for some reason");
 								return;
-						}
-						UnityEngine.Vector3 movementVector = new UnityEngine.Vector3 (0, -1, 0);
+						}						
 						for (int rot = 0; rot < bestMove.NumberOfRotations; ++rot) {
 								mUnityTetris.Rotate ();
 						}
@@ -103,8 +102,7 @@ namespace AssemblyCSharp
 				}													
 
 				private	AIMoveEvaluation ComputeScoreForColumn (ClassicTetrisRules scene, int columnDelta)
-				{					
-						List<AssemblyCSharp.Coordinate> filledGridPositions = scene.CurrentShape .GetCurrentGridPosition ();						
+				{											
 						//s.ShadeSubBlock (0); //shade anchor block for debugging
 
 						AIMoveEvaluation placement = new AIMoveEvaluation ();
@@ -168,10 +166,10 @@ namespace AssemblyCSharp
 				
 								//Add points for each wall neighbor
 								if (neighbor.RightNeighborStatus == TetrisGridCellStatus.Wall) { //boost a little bit on the sides of scores don't clump in the middle
-										score += .5f;
+										score += .75f;
 								}							
 								if (neighbor.LeftNeighborStatus == TetrisGridCellStatus.Wall) {
-										score += .5f;
+										score += .75f;
 								}
 								if (neighbor.BotNeighborStatus == TetrisGridCellStatus.Wall) {
 										++score;																																					
