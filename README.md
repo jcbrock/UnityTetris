@@ -36,6 +36,9 @@ Publishers / Subscribers
 The TetrisGrid class is a wrapper around the C# BitArray class and helps with things like bit shifting since those aren't natural operators on BitArrays.
 The AI class has to touch some of the lower level classes to compute the score of possible moves.
 
+Class Diagram:
+![Class Diagram](https://github.com/jcbrock/UnityTetris/blob/ReadMeChanges/Documentation/UnityTetrisClassDiagram.png)
+
 TODOs / Things I didn't get around to
 --------
 - Capping frames after a certain time (such as cutting AI calculations short and doing the rest in the next frame)
